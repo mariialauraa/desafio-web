@@ -1,5 +1,5 @@
 <script setup>
-  import Login from '@/components/Login.vue';
+  import Dashboard from '@/components/Dashboard.vue';
   import { ref } from 'vue'
 
   const showSidebar = ref(false)
@@ -53,7 +53,7 @@
         v-if="page === 1"
         class="p-4"
       >
-        <Login/>
+        <Dashboard/>
       </main>
       <main
         v-else-if="page === 2"
