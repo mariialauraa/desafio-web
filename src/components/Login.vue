@@ -1,5 +1,6 @@
 <script setup>
-import axios from 'axios'
+import router from '@/router';
+import AuthService from '@/services/authService';
 
 import { ref } from 'vue'
 
@@ -8,33 +9,23 @@ const user = ref({
   password: ''
 })
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000/'
-})
-
-const login = async user => {
+const login = async () => {
   try {
-    const res = await api.post('/admin/v1/login', { user })
-    console.log(res)
-
-    // localStorage.setItem('token', res.data.token)
-    // localStorage.setItem('user', JSON.stringify(res.data.user))
-
-    // alert('Login realizado com sucesso')
-    // router.push('/')
+    await AuthService.login(user.value)
+    alert('Login realizado com sucesso')
+    router.push('/')
 
   } catch (error) {
-    console.log(error)
+    alert(error.message)
   }
-}
-
+};
 </script>
 
 <template>
   <VaForm
     class="w-[300px]"
     tag="form"
-    @submit.prevent="login(user)"
+    @submit.prevent="login"
   >
     <VaInput
       v-model="user.login"
