@@ -1,9 +1,22 @@
 <script setup>
   import Dashboard from '@/components/Dashboard.vue';
+  import AuthService from '@/services/authService';
+  import router from '@/router';
   import { ref } from 'vue'
+  import Products from '@/components/admin/v1/Products.vue'
+  import Users from '@/components/admin/v1/Users.vue';
 
   const showSidebar = ref(false)
   const page = ref(1)
+
+  const logout = async () => {
+    try {
+      await AuthService.logout()
+      router.push('/login')
+    } catch {
+      console.error('Erro durante o logout:', error)
+    }
+  }
 </script>
 
 <template>
@@ -24,6 +37,13 @@
             LOGO
           </VaNavbarItem>
         </template>
+        <template #right>
+          <VaButton @click="logout">
+            <VaIcon name="logout" />
+            <span style="margin-left: 4px;"></span>
+            Sair
+          </VaButton>
+        </template>
       </VaNavbar>
     </template>
 
@@ -39,9 +59,25 @@
         </VaSidebarItem>
         <VaSidebarItem :active="page === 2" @click="page = 2">
           <VaSidebarItemContent>
-            <VaIcon name="phone" />
+            <VaIcon name="person" />
             <VaSidebarItemTitle>
-              About
+              Usuários
+            </VaSidebarItemTitle>
+          </VaSidebarItemContent>
+        </VaSidebarItem>
+        <VaSidebarItem :active="page === 3" @click="page = 3">
+          <VaSidebarItemContent>
+            <VaIcon name="list" />
+            <VaSidebarItemTitle>
+              Produtos
+            </VaSidebarItemTitle>
+          </VaSidebarItemContent>
+        </VaSidebarItem>
+        <VaSidebarItem :active="page === 4" @click="page = 4">
+          <VaSidebarItemContent>
+            <VaIcon name="inventory" />
+            <VaSidebarItemTitle>
+              Cargas
             </VaSidebarItemTitle>
           </VaSidebarItemContent>
         </VaSidebarItem>
@@ -59,13 +95,13 @@
         v-else-if="page === 2"
         class="p-4"
       >
-        <h3 class="va-h3">
-          Page 2
-        </h3>
-        <p>Page content must be wrapped in main tag. You must do it manually. Here you can place any blocks you need in your application.</p>
-
-        <p>For example, you can place here your router view, add sidebar with navigation in #left slot.</p>
-        <p>If you're using VaSidebar for page navigation don't forget to wrap it in nav tag.</p>
+        <Users/>
+      </main>
+      <main
+        v-else-if="page === 3"
+        class="p-4"
+        >
+        <Products/>
       </main>
     </template>
   </VaLayout>
