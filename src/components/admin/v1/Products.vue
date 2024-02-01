@@ -1,5 +1,38 @@
 <template>
-  <div style="margin-left: 20px; margin-right: 20px;">
+  <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
+
+    <tr style="color: #B50025;">
+      <strong>Adicionar novo produto:</strong>
+    </tr>
+    <div style="margin-top: 20px;">
+      <VaModal
+        class="modal-crud"
+        :model-value="!!editedProduct"
+        title="Adicionar novo Produto"
+        size="small"
+        @ok="createProduct"
+        @cancel="resetEditedProduct"
+      />
+
+      <va-input 
+        v-model="newProduct.name" 
+        label="Nome" 
+        placeholder="Digite o produto"
+        class="my-6" 
+      />
+
+      <va-input 
+        v-model="newProduct.ballast"
+        label="Lastro" 
+        placeholder="Digite o lastro"
+        class="mr-2"
+      />
+
+      <va-button style="margin-top: 18px;" @click="createProduct">
+        Adicionar
+      </va-button>
+    </div>
+
     <VaDataTable
       class="table-crud" 
       :items="products" 
@@ -44,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 
 const api = axios.create({
@@ -59,10 +92,17 @@ const columns = ref([
   { key: "actions", width: 80 },
 ]);
 
+const newProduct = reactive({
+  name: '',
+  ballast: ''
+});
+
 const editedProductId = ref(null);
 const editedProduct = ref(null);
 
 const resetEditedProduct = () => {
+  newProduct.name = '';
+  newProduct.ballast = '';
   editedProduct.value = null;
   editedProductId.value = null;
 };
@@ -80,6 +120,30 @@ const fetchData = async () => {
     products.value = response.data.products;
   } catch (error) {
     console.error('Erro ao obter lista de produtos', error);
+  }
+};
+
+const createProduct = async () => {
+  if (!newProduct.name || !newProduct.ballast) {
+    alert('Por favor, preencha todos os campos.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await api.post('/admin/v1/products', {
+      name: newProduct.name, 
+      ballast: newProduct.ballast 
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 200) {      
+      products.value = [...products.value, response.data.product];       
+      resetEditedProduct();
+    }
+  } catch (error) {
+    console.error('Erro ao criar produto', error.response || error);
   }
 };
 
