@@ -1,22 +1,44 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px;">
-    <VaDataTable class="table-crud" :items="items" :columns="columns" striped>
-      <template #cell(actions)="{ rowIndex }">
-        <VaButton preset="plain" icon="edit" @click="openModalToEditItemById(rowIndex)" />
-        <VaButton preset="plain" icon="delete" class="ml-3" @click="deleteItemById(rowIndex)" />
+    <VaDataTable
+      class="table-crud" 
+      :items="users" 
+      :columns="columns" 
+      striped
+    >
+      <template #cell(actions)="{ row }">
+          <VaButton 
+            v-if="row"
+            preset="plain" 
+            icon="edit" 
+            @click="openModalToEditUser(row)" 
+          />
+          <VaButton 
+            preset="plain"
+            icon="delete"
+            @click="() => deleteUser(row)"
+          />
       </template>
     </VaDataTable>
 
     <VaModal
       class="modal-crud"
-      :model-value="!!editedItem"
+      :model-value="!!editedUser"
       title="Editar"
       size="small"
-      @ok="editItem"
-      @cancel="resetEditedItem"
+      @ok="editUser"
+      @cancel="resetEditedUser"
     >
-      <VaInput v-model="editedItem.name" class="my-6" label="Name" />
-      <VaInput v-model="editedItem.email" class="my-6" label="Email" />
+      <VaInput 
+        v-model="editedUser.name" 
+        class="my-6" 
+        label="Nome" 
+      />
+      <VaInput 
+        v-model="editedUser.login" 
+        class="my-6" 
+        label="Email" 
+      />
     </VaModal>
   </div>
 </template>
@@ -29,20 +51,20 @@ const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
 
-const items = ref([]);
+const users = ref([]);
 const columns = ref([
   { key: "id", sortable: true },
   { key: "name", sortable: true },
-  { key: "email", sortable: true },
+  { key: "login", sortable: true },
   { key: "actions", width: 80 },
 ]);
 
-const editedItemId = ref(null);
-const editedItem = ref(null);
+const editedUserId = ref(null);
+const editedUser = ref(null);
 
-const resetEditedItem = () => {
-  editedItem.value = null;
-  editedItemId.value = null;
+const resetEditedUser = () => {
+  editedUser.value = null;
+  editedUserId.value = null;
 };
 
 const fetchData = async () => {
@@ -51,45 +73,55 @@ const fetchData = async () => {
     const response = await api.get('/admin/v1/users', {
       headers: { Authorization: `Bearer ${token}` }
     });
-    items.value = response.data.users;
+
+      const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
+      users.value = sortedUsers;
+
+    users.value = response.data.users;
   } catch (error) {
     console.error('Erro ao obter lista de usuários', error);
   }
 };
 
-const deleteItemById = async (id) => {
-  try {
+const deleteUser = async (row) => {
+  try {    
     const token = localStorage.getItem('token');
-    await api.delete(`/admin/v1/users/${id}`, {
+    await api.delete(`/admin/v1/users/${row.itemKey.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    items.value = items.value.filter(item => item.id !== id);
+    users.value = users.value.filter(u => u.id !== row.itemKey.id);   
   } catch (error) {
     console.error('Erro ao excluir usuário', error);
-    items.value = items.value.filter(item => item.id !== id);
   }
 };
 
-const editItem = async () => {
+const editUser = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.patch(`/admin/v1/users/${editedItemId.value}`, editedItem.value, {
+    const response = await api.patch(`/admin/v1/users/${editedUserId.value}`, editedUser.value, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     if (response.status === 200) {
       const updatedUser = response.data;
-      items.value = items.value.map(item => (item.id === editedItemId.value ? updatedUser : item));
-      resetEditedItem();
+      users.value = users.value.map(user => (user.id === editedUserId.value ? updatedUser : user));
+      resetEditedUser();
+    } else {
+      console.error('Erro ao editar usuário:', response.status, response.data);
     }
   } catch (error) {
     console.error('Erro ao editar usuário', error);
   }
 };
 
-const openModalToEditItemById = (id) => {
-  editedItemId.value = id;
-  editedItem.value = { ...items.value.find(item => item.id === id) };
+const openModalToEditUser = (row) => {
+  console.log('Objeto recebido em openModalToEditUser:', row); 
+  if (row && row.itemKey && row.itemKey.id) {
+    editedUserId.value = row.itemKey.id;
+    editedUser.value = { ...row.itemKey };
+  } else {
+    console.error('Objeto ou ID indefinido:', row);
+  }
 };
 
 onMounted(() => {
