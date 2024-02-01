@@ -74,8 +74,8 @@ const fetchData = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-      const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
-      users.value = sortedUsers;
+    const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
+    users.value = sortedUsers;
 
     users.value = response.data.users;
   } catch (error) {
@@ -103,8 +103,8 @@ const editUser = async () => {
     });
 
     if (response.status === 200) {
-      const updatedUser = response.data;
-      users.value = users.value.map(user => (user.id === editedUserId.value ? updatedUser : user));
+      const updatedUser = response.data.user;
+      users.value = users.value.map(user => (user.id === updatedUser.id ? updatedUser : user));
       resetEditedUser();
     } else {
       console.error('Erro ao editar usuário:', response.status, response.data);

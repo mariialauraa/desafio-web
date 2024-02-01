@@ -48,7 +48,7 @@
     </template>
 
     <template #left>
-      <VaSidebar v-model="showSidebar" class="py-4">
+      <VaSidebar v-model="showSidebar" class="py-4" :minimized="showSidebar" minimized-width="64px">
         <VaSidebarItem :active="page === 1" @click="page = 1">
           <VaSidebarItemContent>
             <VaIcon name="home" />
