@@ -3,13 +3,15 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { createPinia } from 'pinia';
 import { createVuestic } from "vuestic-ui";
 import "vuestic-ui/css";
 import "material-design-icons-iconfont/dist/material-design-icons.min.css";
 
 const app = createApp(App)
 
-app.use(router)
+app.use(createPinia());
+app.use(router);
 
 app.use(createVuestic({
   config: {
