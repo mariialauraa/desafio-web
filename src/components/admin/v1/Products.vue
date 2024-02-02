@@ -1,9 +1,9 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
 
-    <tr style="color: #B50025;">
+    <h1 style="color: #B50025;">
       <strong>Adicionar novo produto:</strong>
-    </tr>
+    </h1>
     <div style="margin-top: 20px;">
       <VaModal
         class="modal-crud"
@@ -25,7 +25,7 @@
         v-model="newProduct.ballast"
         label="Lastro" 
         placeholder="Digite o lastro"
-        class="mr-2"
+        class="ml-2 mr-2"
       />
 
       <va-button style="margin-top: 18px;" @click="createProduct">

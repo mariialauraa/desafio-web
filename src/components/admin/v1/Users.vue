@@ -1,5 +1,46 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px;">
+
+    <h1 style="color: #B50025; margin-top: 20px;">
+      <strong>Adicionar novo usuário:</strong>
+    </h1>
+    <div style="margin-top: 20px;">
+      <VaModal
+        class="modal-crud"
+        :model-value="!!editedUser"
+        title="Adicionar novo Usuário"
+        size="small"
+        @ok="createUser"
+        @cancel="resetEditedUser"
+      />
+
+      <va-input 
+        v-model="newUser.name" 
+        label="Nome" 
+        placeholder="Digite o usuário"
+        class="my-6" 
+      />
+
+      <va-input 
+        v-model="newUser.login"
+        label="Email" 
+        placeholder="Digite o email"
+        class="ml-2 mr-2"
+      />
+
+      <va-input 
+        v-model="newUser.password"
+        label="Senha" 
+        placeholder="Digite a senha"
+        type="password"
+        class="ml-2 mr-2"
+      />
+
+      <va-button style="margin-top: 18px;" @click="createUser">
+        Adicionar
+      </va-button>
+    </div>
+
     <VaDataTable
       class="table-crud" 
       :items="users" 
@@ -39,13 +80,20 @@
         class="my-6" 
         label="Email" 
       />
+      <VaInput 
+        v-model="editedUser.password" 
+        class="my-6" 
+        label="Password" 
+        type="password"
+      />
     </VaModal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
+
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
@@ -59,10 +107,19 @@ const columns = ref([
   { key: "actions", width: 80 },
 ]);
 
+const newUser = reactive({
+  name: '',
+  login: '',
+  password: ''
+});
+
 const editedUserId = ref(null);
 const editedUser = ref(null);
 
 const resetEditedUser = () => {
+  newUser.name = '';
+  newUser.login = '';
+  newUser.password = '';
   editedUser.value = null;
   editedUserId.value = null;
 };
@@ -80,6 +137,33 @@ const fetchData = async () => {
     users.value = response.data.users;
   } catch (error) {
     console.error('Erro ao obter lista de usuários', error);
+  }
+};
+
+const createUser = async () => {
+  if (!newUser.name || !newUser.login || !newUser.password) {
+    alert('Por favor, preencha todos os campos.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');    
+    const response = await api.post('/admin/v1/users', {
+      user: { 
+        name: newUser.name, 
+        login: newUser.login,
+        password: newUser.password
+      }
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 200) {      
+      users.value = [...users.value, response.data.user];       
+      resetEditedUser();
+    }
+  } catch (error) {
+    console.error('Erro ao criar usuário', error.response || error);
   }
 };
 

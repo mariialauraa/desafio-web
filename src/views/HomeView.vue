@@ -2,12 +2,19 @@
   import Dashboard from '@/components/Dashboard.vue';
   import AuthService from '@/services/authService';
   import router from '@/router';
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   import Products from '@/components/admin/v1/Products.vue'
   import Users from '@/components/admin/v1/Users.vue';
 
   const showSidebar = ref(false)
   const page = ref(1)
+
+  const userName = ref('');
+
+  onMounted(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    userName.value = user ? user.name : 'Convidado';
+  });
 
   const logout = async () => {
     try {
@@ -34,7 +41,7 @@
         </template>
         <template #center>
           <VaNavbarItem class="font-bold text-lg">
-            LOGO
+            <strong>Bem-vindo, {{ userName }}</strong>
           </VaNavbarItem>
         </template>
         <template #right>
