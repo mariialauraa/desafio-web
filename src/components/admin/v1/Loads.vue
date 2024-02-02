@@ -1,0 +1,215 @@
+<template>
+  <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
+
+    <h1 style="color: #B50025;">
+      <strong>Adicionar nova carga:</strong>
+    </h1>
+    <div style="margin-top: 20px;">
+      <VaModal
+        class="modal-crud"
+        :model-value="!!editedLoad"
+        title="Adicionar nova Carga"
+        size="small"
+        @ok="createLoad"
+        @cancel="resetEditedLoad"
+      />
+
+      <va-input 
+        v-model="newLoad.code" 
+        label="Código" 
+        placeholder="Digite o código"
+        class="my-6" 
+      />
+
+      <VaDateInput 
+        v-model="newLoad.delivery_date"
+        label="Data" 
+        placeholder="Selecione a data"
+        class="ml-2 mr-2"
+      />
+
+      <va-button style="margin-top: 18px;" @click="createLoad">
+        Adicionar
+      </va-button>
+    </div>
+
+    <VaDataTable
+      class="table-crud" 
+      :items="loads" 
+      :columns="columns" 
+      striped
+    >
+      <template #cell(actions)="{ row }">
+          <VaButton 
+            v-if="row"
+            preset="plain" 
+            icon="edit" 
+            @click="openModalToEditLoad(row)" 
+          />
+          <VaButton 
+            preset="plain"
+            icon="delete"
+            @click="() => deleteLoad(row)"
+          />
+      </template>
+    </VaDataTable>
+
+    <VaModal
+      class="modal-crud"
+      :model-value="!!editedLoad"
+      title="Editar"
+      size="small"
+      @ok="editLoad"
+      @cancel="resetEditedLoad"
+    >
+      <VaInput 
+        v-model="editedLoad.code" 
+        class="my-6" 
+        label="Código" 
+      />
+      <VaDateInput  
+        v-model="editedLoad.delivery_date" 
+        class="my-6" 
+        label="Data" 
+      />
+    </VaModal>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3000/'
+});
+
+const loads = ref([]);
+const columns = ref([
+  { key: "id", sortable: true },
+  { key: "code", sortable: true },
+  { key: "delivery_date", sortable: true },
+  { key: "actions", width: 80 },
+]);
+
+const newLoad = reactive({
+  code: '',
+  delivery_date: null
+});
+
+const editedLoadId = ref(null);
+const editedLoad = ref(null);
+
+const resetEditedLoad = () => {
+  newLoad.code = '';
+  newLoad.delivery_date = null;
+  editedLoad.value = null;
+  editedLoadId.value = null;
+};
+
+const fetchData = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await api.get('/admin/v1/loads', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const sortedLoads = response.data.loads.sort((a, b) => a.id - b.id);
+    loads.value = sortedLoads;
+
+    loads.value = response.data.loads;
+  } catch (error) {
+    console.error('Erro ao obter lista de cargas', error);
+  }
+};
+
+const createLoad = async () => {
+  if (!newLoad.code || !newLoad.delivery_date) {
+    alert('Por favor, preencha todos os campos.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await api.post('/admin/v1/loads', {
+      code: newLoad.code, 
+      delivery_date: newLoad.delivery_date 
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 200) {      
+      loads.value = [...loads.value, response.data.load];       
+      resetEditedLoad();
+    }
+  } catch (error) {
+    console.error('Erro ao criar carga', error.response || error);
+  }
+};
+
+const deleteLoad = async (row) => {
+  try {    
+    const token = localStorage.getItem('token');
+    await api.delete(`/admin/v1/loads/${row.itemKey.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    loads.value = loads.value.filter(u => u.id !== row.itemKey.id);   
+  } catch (error) {
+    console.error('Erro ao excluir carga', error);
+  }
+};
+
+const editLoad = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await api.patch(`/admin/v1/loads/${editedLoadId.value}`, editedLoad.value, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 200) {
+      const updatedLoad = response.data.load;
+      loads.value = loads.value.map(load => (load.id === updatedLoad.id ? updatedLoad : load));
+      resetEditedLoad();
+    } else {
+      console.error('Erro ao editar carga:', response.status, response.data);
+    }
+  } catch (error) {
+    console.error('Erro ao editar carga', error);
+  }
+};
+
+const openModalToEditLoad = (row) => {
+  if (row && row.itemKey && row.itemKey.id) {
+    editedLoadId.value = row.itemKey.id;
+    editedLoad.value = { ...row.itemKey };
+  } else {
+    console.error('Objeto ou ID indefinido:', row);
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
+<style lang="scss" scoped>
+.table-crud {
+  --va-form-element-default-width: 0;
+
+  .va-input {
+    display: block;
+  }
+
+  &__slot {
+    th {
+      vertical-align: middle;
+    }
+  }
+}
+
+.modal-crud {
+  .va-input {
+    display: block;
+  }
+}
+</style>

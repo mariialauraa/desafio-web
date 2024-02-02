@@ -5,6 +5,7 @@
   import { ref, onMounted } from 'vue'
   import Products from '@/components/admin/v1/Products.vue'
   import Users from '@/components/admin/v1/Users.vue';
+  import Loads from '@/components/admin/v1/Loads.vue';
 
   const showSidebar = ref(false)
   const page = ref(1)
@@ -109,6 +110,12 @@
         class="p-4"
         >
         <Products/>
+      </main>
+      <main
+        v-else-if="page === 4"
+        class="p-4"
+        >
+        <Loads/>
       </main>
     </template>
   </VaLayout>
