@@ -49,7 +49,7 @@
           <VaButton 
             preset="plain"
             icon="delete"
-            @click="() => deleteProduct(row)"
+            @click="() => promptDeleteProduct(row)"
           />
       </template>
     </VaDataTable>
@@ -72,6 +72,18 @@
         class="my-6" 
         label="Lastro" 
       />
+    </VaModal>
+
+    <VaModal
+      ref="deleteConfirmationModal"
+      @ok="confirmDeletion"
+      @cancel="cancelDeletion"
+      ok-text="Deletar"
+      cancel-text="Cancelar"
+      stateful
+    >
+      <h3 class="va-h3">Confirmação</h3>
+      <p>Tem certeza que deseja deletar este produto?</p>
     </VaModal>
   </div>
 </template>
@@ -105,6 +117,14 @@ const resetEditedProduct = () => {
   newProduct.ballast = '';
   editedProduct.value = null;
   editedProductId.value = null;
+};
+
+const deleteConfirmationModal = ref(null);
+const productToDelete = ref(null);
+
+const promptDeleteProduct = (row) => {
+  productToDelete.value = row; 
+  deleteConfirmationModal.value.show(); 
 };
 
 const fetchData = async () => {
@@ -147,15 +167,18 @@ const createProduct = async () => {
   }
 };
 
-const deleteProduct = async (row) => {
-  try {    
-    const token = localStorage.getItem('token');
-    await api.delete(`/admin/v1/products/${row.itemKey.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    products.value = products.value.filter(u => u.id !== row.itemKey.id);   
-  } catch (error) {
-    console.error('Erro ao excluir produto', error);
+const confirmDeletion = async () => {
+  if (productToDelete.value) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.delete(`/admin/v1/products/${productToDelete.value.itemKey.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      products.value = products.value.filter(u => u.id !== productToDelete.value.itemKey.id);
+      productToDelete.value = null; 
+    } catch (error) {
+      console.error('Erro ao excluir produto', error);
+    }
   }
 };
 

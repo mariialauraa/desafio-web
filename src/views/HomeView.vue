@@ -1,91 +1,46 @@
-<script setup>
-  import Dashboard from '@/components/Dashboard.vue';
-  import AuthService from '@/services/authService';
-  import router from '@/router';
-  import { ref, onMounted } from 'vue'
-  import Products from '@/components/admin/v1/Products.vue'
-  import Users from '@/components/admin/v1/Users.vue';
-  import Loads from '@/components/admin/v1/Loads.vue';
-
-  const showSidebar = ref(false)
-  const page = ref(1)
-
-  const userName = ref('');
-
-  onMounted(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    userName.value = user ? user.name : 'Convidado';
-  });
-
-  const logout = async () => {
-    try {
-      await AuthService.logout()
-      router.push('/login')
-    } catch {
-      console.error('Erro durante o logout:', error)
-    }
-  }
-</script>
-
 <template>
-  <VaLayout style="height: 500px">
+  <VaLayout
+    :top="{ fixed: true, order: 2 }"
+    :left="{ fixed: true, absolute: breakpoints.smDown, order: 1, overlay: breakpoints.smDown && isSidebarVisible }"
+    @left-overlay-click="isSidebarVisible = false"
+  >
     <template #top>
-      <VaNavbar
-        color="primary"
-        class="py-2"
-      >
+      <VaNavbar shadowed class="custom-navbar-height">
         <template #left>
           <VaButton
-            :icon="showSidebar ? 'menu_open' : 'menu'"
-            @click="showSidebar = !showSidebar"
+            preset="secondary"
+            :icon="isSidebarVisible ? 'menu_open' : 'menu'"
+            @click="isSidebarVisible = !isSidebarVisible"
           />
         </template>
+        
         <template #center>
-          <VaNavbarItem class="font-bold text-lg">
-            <strong>Bem-vindo, {{ userName }}</strong>
+          <VaNavbarItem class="font-bold text-lg" style="margin: auto;">
+            <img src="/logo-easypallet.png" alt="Easy Pallet Logo" width="80" height="60">
           </VaNavbarItem>
         </template>
+
         <template #right>
-          <VaButton @click="logout">
+          <VaButton @click="logout" style="margin-left: auto;">
             <VaIcon name="logout" />
-            <span style="margin-left: 4px;"></span>
-            Sair
+            <span>Sair</span>
           </VaButton>
         </template>
       </VaNavbar>
     </template>
 
     <template #left>
-      <VaSidebar v-model="showSidebar" class="py-4" :minimized="showSidebar" minimized-width="64px">
-        <VaSidebarItem :active="page === 1" @click="page = 1">
+      <VaSidebar v-model="isSidebarVisible" class="custom-sidebar">
+        <VaSidebarItem
+          v-for="(item, index) in menu"
+          :key="index"
+          :active="isActive(item.title)"
+          @click="setActive(item.title)"
+        >
           <VaSidebarItemContent>
-            <VaIcon name="home" />
+            <VaIcon :name="item.icon" />
             <VaSidebarItemTitle>
-              Home
-            </VaSidebarItemTitle>
-          </VaSidebarItemContent>
-        </VaSidebarItem>
-        <VaSidebarItem :active="page === 2" @click="page = 2">
-          <VaSidebarItemContent>
-            <VaIcon name="person" />
-            <VaSidebarItemTitle>
-              Usuários
-            </VaSidebarItemTitle>
-          </VaSidebarItemContent>
-        </VaSidebarItem>
-        <VaSidebarItem :active="page === 3" @click="page = 3">
-          <VaSidebarItemContent>
-            <VaIcon name="list" />
-            <VaSidebarItemTitle>
-              Produtos
-            </VaSidebarItemTitle>
-          </VaSidebarItemContent>
-        </VaSidebarItem>
-        <VaSidebarItem :active="page === 4" @click="page = 4">
-          <VaSidebarItemContent>
-            <VaIcon name="inventory" />
-            <VaSidebarItemTitle>
-              Cargas
+              {{ item.title }}
             </VaSidebarItemTitle>
           </VaSidebarItemContent>
         </VaSidebarItem>
@@ -93,30 +48,65 @@
     </template>
 
     <template #content>
-      <main
-        v-if="page === 1"
-        class="p-4"
-      >
-        <Dashboard/>
-      </main>
-      <main
-        v-else-if="page === 2"
-        class="p-4"
-      >
-        <Users/>
-      </main>
-      <main
-        v-else-if="page === 3"
-        class="p-4"
-        >
-        <Products/>
-      </main>
-      <main
-        v-else-if="page === 4"
-        class="p-4"
-        >
-        <Loads/>
+      <main>
+        <Dashboard v-if="page === 1" />
+        <Loads v-else-if="page === 2" />
+        <Products v-else-if="page === 3" />
+        <Users v-else-if="page === 4" />
       </main>
     </template>
   </VaLayout>
 </template>
+
+<script setup>
+import { ref, watchEffect } from 'vue';
+import { useBreakpoint } from 'vuestic-ui';
+import Dashboard from '@/components/Dashboard.vue';
+import Products from '@/components/admin/v1/Products.vue';
+import Users from '@/components/admin/v1/Users.vue';
+import Loads from '@/components/admin/v1/Loads.vue';
+import AuthService from '@/services/authService';
+import router from '@/router';
+
+const userName = ref('Convidado');
+const breakpoints = useBreakpoint();
+const isSidebarVisible = ref(breakpoints.smUp);
+const page = ref(1);
+
+function isActive(item) {
+  return item === activeItem.value;
+}
+
+function setActive(item) {
+  activeItem.value = item;
+  const menuItem = menu.find(menuItem => menuItem.title === item);
+  if (menuItem) {
+    menuItem.action();
+  }
+}
+
+watchEffect(() => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  userName.value = user ? user.name : 'Convidado';
+  isSidebarVisible.value = breakpoints.smUp;
+});
+
+const logout = async () => {
+  try {
+    await AuthService.logout();
+    router.push('/login');
+  } catch (error) {
+    console.error('Erro durante o logout:', error);
+  }
+};
+
+const menu = [
+  { icon: 'home', title: 'Home', action: () => page.value = 1 },
+  { icon: 'local_shipping', title: 'Cargas', action: () => page.value = 2 },
+  { icon: 'inventory', title: 'Produtos', action: () => page.value = 3 },
+  { icon: 'person', title: 'Usuários', action: () => page.value = 4 },
+  { icon: 'logout', title: 'Sair', action: logout },
+];
+
+const activeItem = ref('Home');
+</script>

@@ -3,6 +3,7 @@ import router from '@/router';
 import AuthService from '@/services/authService';
 import { ref } from 'vue'
 import { useAlertStore } from '@/stores/alertStore';
+import { useForm } from "vuestic-ui";
 
 const $store = useAlertStore();
 
@@ -17,10 +18,13 @@ const newUser = ref({
   password: ''
 })
 
+const loginAttempted = ref(false);
+const { errorMessagesNamed } = useForm("myForm")
+
 const login = async () => {
+  loginAttempted.value = true;
   try {
     await AuthService.login(user.value)
-    $store.setAlert('Login realizado com sucesso!', 'success')
     router.push('/')
   } catch (error) {
     $store.setAlert('Usuário não encontrado ou Senha inválida', 'error');
@@ -39,7 +43,7 @@ const createAccount = async () => {
     $store.setAlert('Conta criada com sucesso', 'success');
     resetCreateAccountForm();
   } catch (error) {
-    $store.setAlert('Error ao criar conta', 'error');
+    $store.setAlert('Todos os campos precisam ser preenchidos', 'error');
   }
 };
 
@@ -58,71 +62,89 @@ const resetCreateAccountForm = () => {
       {{ $store.alert.message }}
     </div>
 
-    <VaForm
-      class="w-full max-w-md"
-      tag="form"
-      @submit.prevent="login"
-    >
-      <VaInput
-        v-model="user.login"
-        label="E-mail"
-        class="mt-3"
-      />
+    <div class="relevo">
+      <VaForm 
+        ref="myForm" immediate hide-error-messages
+        class="w-full max-w-md"
+        tag="form"
+        @submit.prevent="login"
+      >
+        <VaInput
+          v-model="user.login"
+          label="E-mail"
+          name="E-mail"
+          :rules="[(v) => Boolean(v) || 'E-mail é obrigatório']"
+          class="mt-3"
+        />
+  
+        <VaInput
+          v-model="user.password"
+          type="password"
+          label="Senha"
+          name="Senha"
+          :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
+          class="mt-3"
+        />
+  
+        <div class="mt-3 flex justify-center">
+          <VaButton
+            type="submit"
+            class="mt-3 mb-3"
+          >
+            Entrar
+          </VaButton>
+        </div>
+      </VaForm>
 
-      <VaInput
-        v-model="user.password"
-        class="mt-3"
-        type="password"
-        label="Senha"
-      />
-
-      <div class="mt-3 flex justify-center">
-        <VaButton
-          type="submit"
-          class="mt-3 mb-3"
-        >
-          Entrar
-        </VaButton>
+      <div v-if="loginAttempted" v-for="errors, fieldName in errorMessagesNamed" :key="fieldName">
+        <span v-if="errors.length > 0" class="va-title">{{ fieldName }}</span>
+        <ul>
+          <li v-for="error in errors" :key="error">
+            {{ error }}
+          </li>
+        </ul>
       </div>
-    </VaForm>
+    </div>
 
-    <div class="mt-3 flex items-center">
+    <div class="mt-2 mb-2 flex items-center">
       <span class="mx-4 text-red-500">ou</span>
     </div>
 
-    <VaForm
-      class="w-full max-w-md"
-      tag="form"
-      @submit.prevent="createAccount"
-    >
-      <VaInput
-        v-model="newUser.name"
-        label="Nome"
-        class="mt-3"
-      />
-
-      <VaInput
-        v-model="newUser.login"
-        label="E-mail"
-        class="mt-3"
-      />
-
-      <VaInput
-        v-model="newUser.password"        
-        type="password"
-        label="Senha"
-        class="mt-3"
-      />
-
-      <div class="mt-3 flex justify-center">
-        <VaButton
-          type="submit"
+    <div class="relevo">
+      <VaForm
+        class="w-full max-w-md"
+        tag="form"
+        @submit.prevent="createAccount"
+      >
+        <VaInput
+          v-model="newUser.name"
+          label="Nome"
           class="mt-3"
-        >
-          Cadastrar
-        </VaButton>
-      </div>
-    </VaForm>
+        />
+  
+        <VaInput
+          v-model="newUser.login"
+          label="E-mail"
+          class="mt-3"
+        />
+  
+        <VaInput
+          v-model="newUser.password"        
+          type="password"
+          label="Senha"
+          class="mt-3"
+        />
+  
+        <div class="mt-3 flex justify-center">
+          <VaButton
+            type="submit"
+            class="mt-3"
+          >
+            Cadastrar
+          </VaButton>
+        </div>
+      </VaForm>
+    </div>
   </div>
 </template>
 
@@ -143,6 +165,12 @@ const resetCreateAccountForm = () => {
   justify-content: center;
 }
 
+.relevo {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Efeito de relevo */
+  padding: 20px;
+  border-radius: 8px; /* Bordas arredondadas */
+  background-color: #FFF; /* Fundo branco para contraste */
+}
 .va-form {
   width: 100%;
   max-width: 400px;

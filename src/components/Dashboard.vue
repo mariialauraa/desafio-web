@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <img class="imagem" src="/logo-easypallet.png" alt="Easy Pallet Logo">
+    <img class="imagem" src="/easy-canva.png" alt="Easy Pallet Logo">
   </div>
 </template>
 

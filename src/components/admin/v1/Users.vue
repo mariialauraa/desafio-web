@@ -17,7 +17,7 @@
       <va-input 
         v-model="newUser.name" 
         label="Nome" 
-        placeholder="Digite o usuário"
+        placeholder="Digite o nome"
         class="my-6" 
       />
 
@@ -33,7 +33,6 @@
         label="Senha" 
         placeholder="Digite a senha"
         type="password"
-        class="ml-2 mr-2"
       />
 
       <va-button style="margin-top: 18px;" @click="createUser">
@@ -57,7 +56,7 @@
           <VaButton 
             preset="plain"
             icon="delete"
-            @click="() => deleteUser(row)"
+            @click="() => promptDeleteUser(row)"
           />
       </template>
     </VaDataTable>
@@ -86,6 +85,19 @@
         label="Password" 
         type="password"
       />
+    </VaModal>
+
+    <VaModal
+      ref="deleteConfirmationModal"
+      @ok="confirmDeletion"
+      @cancel="cancelDeletion"
+      ok-text="Deletar"
+      cancel-text="Cancelar"
+      stateful
+      class="va-modal-md"
+    >
+      <h3 class="va-h3">Confirmação</h3>
+      <p>Tem certeza que deseja deletar este usuário?</p>
     </VaModal>
   </div>
 </template>
@@ -122,6 +134,14 @@ const resetEditedUser = () => {
   newUser.password = '';
   editedUser.value = null;
   editedUserId.value = null;
+};
+
+const deleteConfirmationModal = ref(null);
+const userToDelete = ref(null);
+
+const promptDeleteUser = (row) => {
+  userToDelete.value = row; 
+  deleteConfirmationModal.value.show(); 
 };
 
 const fetchData = async () => {
@@ -167,15 +187,18 @@ const createUser = async () => {
   }
 };
 
-const deleteUser = async (row) => {
-  try {    
-    const token = localStorage.getItem('token');
-    await api.delete(`/admin/v1/users/${row.itemKey.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    users.value = users.value.filter(u => u.id !== row.itemKey.id);   
-  } catch (error) {
-    console.error('Erro ao excluir usuário', error);
+const confirmDeletion = async () => {
+  if (userToDelete.value) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.delete(`/admin/v1/users/${userToDelete.value.itemKey.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      users.value = users.value.filter(u => u.id !== userToDelete.value.itemKey.id);
+      userToDelete.value = null; 
+    } catch (error) {
+      console.error('Erro ao excluir usuário', error);
+    }
   }
 };
 

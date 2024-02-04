@@ -49,7 +49,7 @@
           <VaButton 
             preset="plain"
             icon="delete"
-            @click="() => deleteLoad(row)"
+            @click="() => promptDeleteLoad(row)"
           />
       </template>
     </VaDataTable>
@@ -72,6 +72,18 @@
         class="my-6" 
         label="Data" 
       />
+    </VaModal>
+
+    <VaModal
+      ref="deleteConfirmationModal"
+      @ok="confirmDeletion"
+      @cancel="cancelDeletion"
+      ok-text="Deletar"
+      cancel-text="Cancelar"
+      stateful
+    >
+      <h3 class="va-h3">Confirmação</h3>
+      <p>Tem certeza que deseja deletar esta carga?</p>
     </VaModal>
   </div>
 </template>
@@ -105,6 +117,14 @@ const resetEditedLoad = () => {
   newLoad.delivery_date = null;
   editedLoad.value = null;
   editedLoadId.value = null;
+};
+
+const deleteConfirmationModal = ref(null);
+const loadToDelete = ref(null);
+
+const promptDeleteLoad = (row) => {
+  loadToDelete.value = row; 
+  deleteConfirmationModal.value.show(); 
 };
 
 const fetchData = async () => {
@@ -147,15 +167,18 @@ const createLoad = async () => {
   }
 };
 
-const deleteLoad = async (row) => {
-  try {    
-    const token = localStorage.getItem('token');
-    await api.delete(`/admin/v1/loads/${row.itemKey.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    loads.value = loads.value.filter(u => u.id !== row.itemKey.id);   
-  } catch (error) {
-    console.error('Erro ao excluir carga', error);
+const confirmDeletion = async () => {
+  if (loadToDelete.value) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.delete(`/admin/v1/loads/${loadToDelete.value.itemKey.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      loads.value = loads.value.filter(u => u.id !== loadToDelete.value.itemKey.id);
+      loadToDelete.value = null; 
+    } catch (error) {
+      console.error('Erro ao excluir carga', error);
+    }
   }
 };
 
