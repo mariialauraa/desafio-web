@@ -77,7 +77,6 @@
     <VaModal
       ref="deleteConfirmationModal"
       @ok="confirmDeletion"
-      @cancel="cancelDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
       stateful
@@ -85,16 +84,36 @@
       <h3 class="va-h3">Confirmação</h3>
       <p>Tem certeza que deseja deletar esta carga?</p>
     </VaModal>
+
+    <div class="mt-4">
+      <VaButton
+        :disabled="currentPage <= 1"
+        @click="changePage(currentPage - 1)"
+      >
+        &lt;
+      </VaButton>
+
+      <VaButton
+        :disabled="loads.lenght < loadsPerPage || currentPage >= totalPages"
+        @click="changePage(currentPage + 1)"
+      >
+        &gt;
+      </VaButton>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const loadsPerPage = 10; 
+const currentPage = ref(1);
+const totalPages = ref(0);
 
 const loads = ref([]);
 const columns = ref([
@@ -130,17 +149,21 @@ const promptDeleteLoad = (row) => {
 const fetchData = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get('/admin/v1/loads', {
+    const response = await api.get(`/admin/v1/loads?page=${currentPage.value}&limit=${loadsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     const sortedLoads = response.data.loads.sort((a, b) => a.id - b.id);
     loads.value = sortedLoads;
-
-    loads.value = response.data.loads;
+    totalPages.value = Math.ceil(response.data.total / loadsPerPage); 
   } catch (error) {
     console.error('Erro ao obter lista de cargas', error);
   }
+};
+
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
 };
 
 const createLoad = async () => {
@@ -158,9 +181,9 @@ const createLoad = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (response.status === 200) {      
-      loads.value = [...loads.value, response.data.load];       
+    if (response.status === 200) {            
       resetEditedLoad();
+      fetchData(currentPage.value);
     }
   } catch (error) {
     console.error('Erro ao criar carga', error.response || error);
@@ -211,7 +234,13 @@ const openModalToEditLoad = (row) => {
 };
 
 onMounted(() => {
-  fetchData();
+  fetchData(currentPage.value);
+});
+
+watch(currentPage, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    fetchData(newVal);
+  }
 });
 </script>
 

@@ -35,7 +35,7 @@
         type="password"
       />
 
-      <va-button style="margin-top: 18px;" @click="createUser">
+      <va-button class="ml-2" style="margin-top: 18px;" @click="createUser">
         Adicionar
       </va-button>
     </div>
@@ -90,7 +90,6 @@
     <VaModal
       ref="deleteConfirmationModal"
       @ok="confirmDeletion"
-      @cancel="cancelDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
       stateful
@@ -99,17 +98,36 @@
       <h3 class="va-h3">Confirmação</h3>
       <p>Tem certeza que deseja deletar este usuário?</p>
     </VaModal>
+
+    <div class="mt-4">
+      <VaButton
+        :disabled="currentPage <= 1"
+        @click="changePage(currentPage - 1)"
+      >
+        &lt;
+      </VaButton>
+
+      <VaButton
+        :disabled="users.lenght < usersPerPage || currentPage >= totalPages"
+        @click="changePage(currentPage + 1)"
+      >
+        &gt;
+      </VaButton>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
-
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const usersPerPage = 10; 
+const currentPage = ref(1);
+const totalPages = ref(0);
 
 const users = ref([]);
 const columns = ref([
@@ -140,24 +158,28 @@ const deleteConfirmationModal = ref(null);
 const userToDelete = ref(null);
 
 const promptDeleteUser = (row) => {
-  userToDelete.value = row; 
-  deleteConfirmationModal.value.show(); 
+  userToDelete.value = row;
+  deleteConfirmationModal.value.show();
 };
 
-const fetchData = async () => {
+const fetchData = async (page = 1) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get('/admin/v1/users', {
+    const response = await api.get(`/admin/v1/users?page=${page}&limit=${usersPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
     users.value = sortedUsers;
-
-    users.value = response.data.users;
+    totalPages.value = Math.ceil(response.data.total / usersPerPage);
   } catch (error) {
     console.error('Erro ao obter lista de usuários', error);
   }
+};
+
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
 };
 
 const createUser = async () => {
@@ -167,10 +189,10 @@ const createUser = async () => {
   }
 
   try {
-    const token = localStorage.getItem('token');    
+    const token = localStorage.getItem('token');
     const response = await api.post('/admin/v1/users', {
-      user: { 
-        name: newUser.name, 
+      user: {
+        name: newUser.name,
         login: newUser.login,
         password: newUser.password
       }
@@ -178,9 +200,9 @@ const createUser = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (response.status === 200) {      
-      users.value = [...users.value, response.data.user];       
+    if (response.status === 200) {
       resetEditedUser();
+      fetchData(currentPage.value); 
     }
   } catch (error) {
     console.error('Erro ao criar usuário', error.response || error);
@@ -232,7 +254,13 @@ const openModalToEditUser = (row) => {
 };
 
 onMounted(() => {
-  fetchData();
+  fetchData(currentPage.value);
+});
+
+watch(currentPage, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    fetchData(newVal);
+  }
 });
 </script>
 

@@ -86,15 +86,35 @@
       <p>Tem certeza que deseja deletar este produto?</p>
     </VaModal>
   </div>
+
+  <div class="mt-4 ml-3">
+    <VaButton
+      :disabled="currentPage <= 1"
+      @click="changePage(currentPage - 1)"
+    >
+      &lt;
+    </VaButton>
+
+    <VaButton
+      :disabled="products.lenght < productsPerPage || currentPage >= totalPages"
+      @click="changePage(currentPage + 1)"
+    >
+      &gt;
+    </VaButton>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const productsPerPage = 10; 
+const currentPage = ref(1);
+const totalPages = ref(0);
 
 const products = ref([]);
 const columns = ref([
@@ -130,17 +150,21 @@ const promptDeleteProduct = (row) => {
 const fetchData = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get('/admin/v1/products', {
+    const response = await api.get(`/admin/v1/products?page=${currentPage.value}&limit=${productsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     const sortedProducts = response.data.products.sort((a, b) => a.id - b.id);
     products.value = sortedProducts;
-
-    products.value = response.data.products;
+    totalPages.value = Math.ceil(response.data.total / productsPerPage); 
   } catch (error) {
     console.error('Erro ao obter lista de produtos', error);
   }
+};
+
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
 };
 
 const createProduct = async () => {
@@ -158,9 +182,9 @@ const createProduct = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (response.status === 200) {      
-      products.value = [...products.value, response.data.product];       
+    if (response.status === 200) {           
       resetEditedProduct();
+      fetchData(currentPage.value);
     }
   } catch (error) {
     console.error('Erro ao criar produto', error.response || error);
@@ -212,7 +236,13 @@ const openModalToEditProduct = (row) => {
 };
 
 onMounted(() => {
-  fetchData();
+  fetchData(currentPage.value);
+});
+
+watch(currentPage, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    fetchData(newVal);
+  }
 });
 </script>
 
