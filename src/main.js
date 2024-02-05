@@ -18,8 +18,8 @@ app.use(createVuestic({
     colors: {
       variables: {
         // Default colors
-        primary: "#B50025",
-        secondary: "#002c85",
+        primary: "#B71C1C",
+        secondary: "#B50025",
         success: "#40e583",
         info: "#2c82e0",
         danger: "#e34b4a",
@@ -28,7 +28,9 @@ app.use(createVuestic({
         dark: "#34495e",
 
         // Custom colors
-        yourCustomColor: "#d0f55d",
+        yourCustomColor: "#b20008",
+        colorA: "#ad0008",
+        colorB: "#a80008"
       },
     },
   },

@@ -21,8 +21,13 @@
         </template>
 
         <template #right>
-          <VaButton @click="logout" style="margin-left: auto;">
-            <VaIcon name="logout" />
+          <VaButton 
+            @click="logout" 
+            size="large"
+            gradient
+            style="margin-left: auto;"
+          >
+            <VaIcon name="logout" :size="medium_size"/>
             <span>Sair</span>
           </VaButton>
         </template>
@@ -30,12 +35,17 @@
     </template>
 
     <template #left>
-      <VaSidebar v-model="isSidebarVisible" class="custom-sidebar">
+      <VaSidebar 
+        color="secondary"
+        gradient
+        v-model="isSidebarVisible" 
+        class="custom-sidebar">
         <VaSidebarItem
           v-for="(item, index) in menu"
           :key="index"
           :active="isActive(item.title)"
           @click="setActive(item.title)"
+          active-color="colorB"
         >
           <VaSidebarItemContent>
             <VaIcon :name="item.icon" />

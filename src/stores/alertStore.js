@@ -20,7 +20,6 @@ export const useAlertStore = defineStore('alertStore', {
     clearMessages() {
       this.successMessage = '';
       this.errorMessage = '';
-      console.log('Messages Cleared');
     }
   },
 });

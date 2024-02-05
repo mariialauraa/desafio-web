@@ -1,6 +1,10 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px;">
 
+    <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
+      {{ $store.alert.message }}
+    </div>
+
     <h1 style="color: #B50025; margin-top: 20px;">
       <strong>Adicionar novo usuário:</strong>
     </h1>
@@ -35,7 +39,11 @@
         type="password"
       />
 
-      <va-button class="ml-2" style="margin-top: 18px;" @click="createUser">
+      <va-button 
+        class="ml-2" 
+        style="margin-top: 18px;" 
+        @click="createUser"
+      >
         Adicionar
       </va-button>
     </div>
@@ -100,19 +108,14 @@
     </VaModal>
 
     <div class="mt-4">
-      <VaButton
-        :disabled="currentPage <= 1"
-        @click="changePage(currentPage - 1)"
-      >
-        &lt;
-      </VaButton>
-
-      <VaButton
-        :disabled="users.lenght < usersPerPage || currentPage >= totalPages"
-        @click="changePage(currentPage + 1)"
-      >
-        &gt;
-      </VaButton>
+      <VaPagination
+        v-model="currentPage"
+        :pages="totalPages"
+        :visible-pages="3"
+        size="medium"
+        @input="changePage($event)"
+        class="my-pagination justify-center"
+      />
     </div>
   </div>
 </template>
@@ -120,10 +123,14 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
+import { useAlertStore } from '@/stores/alertStore';
+import { VaPagination } from 'vuestic-ui';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const $store = useAlertStore();
 
 const usersPerPage = 10; 
 const currentPage = ref(1);
@@ -131,10 +138,10 @@ const totalPages = ref(0);
 
 const users = ref([]);
 const columns = ref([
-  { key: "id", sortable: true },
-  { key: "name", sortable: true },
-  { key: "login", sortable: true },
-  { key: "actions", width: 80 },
+  { key: "id", label: "id", sortable: true },
+  { key: "name", label: "nome", sortable: true },
+  { key: "login", label: "email", sortable: true },
+  { key: "actions", label: "ações", width: 80 },
 ]);
 
 const newUser = reactive({
@@ -171,7 +178,11 @@ const fetchData = async (page = 1) => {
 
     const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
     users.value = sortedUsers;
-    totalPages.value = Math.ceil(response.data.total / usersPerPage);
+    if (response.data.meta) {
+      totalPages.value = response.data.meta.total_pages;
+    } else {
+      console.error('Dados de paginação não encontrados na resposta da API');
+    }
   } catch (error) {
     console.error('Erro ao obter lista de usuários', error);
   }
@@ -184,7 +195,7 @@ const changePage = (newPage) => {
 
 const createUser = async () => {
   if (!newUser.name || !newUser.login || !newUser.password) {
-    alert('Por favor, preencha todos os campos.');
+    $store.setAlert('Por favor, preencha todos os campos.', 'error');
     return;
   }
 
@@ -203,9 +214,10 @@ const createUser = async () => {
     if (response.status === 200) {
       resetEditedUser();
       fetchData(currentPage.value); 
+      $store.setAlert('Usuário criado com sucesso.', 'success');
     }
   } catch (error) {
-    console.error('Erro ao criar usuário', error.response || error);
+    $store.setAlert('Erro ao criar usuário. Usuário já existe!', 'error');
   }
 };
 
@@ -218,8 +230,9 @@ const confirmDeletion = async () => {
       });
       users.value = users.value.filter(u => u.id !== userToDelete.value.itemKey.id);
       userToDelete.value = null; 
+      $store.setAlert('Usuário deletado com sucesso', 'success');
     } catch (error) {
-      console.error('Erro ao excluir usuário', error);
+      $store.setAlert('Erro ao excluir usuário', 'error');
     }
   }
 };
@@ -235,16 +248,14 @@ const editUser = async () => {
       const updatedUser = response.data.user;
       users.value = users.value.map(user => (user.id === updatedUser.id ? updatedUser : user));
       resetEditedUser();
-    } else {
-      console.error('Erro ao editar usuário:', response.status, response.data);
+      $store.setAlert('Usuário editado com sucesso', 'success');
     }
   } catch (error) {
-    console.error('Erro ao editar usuário', error);
+    $store.setAlert('Erro ao editar usuário', 'error');
   }
 };
 
 const openModalToEditUser = (row) => {
-  console.log('Objeto recebido em openModalToEditUser:', row); 
   if (row && row.itemKey && row.itemKey.id) {
     editedUserId.value = row.itemKey.id;
     editedUser.value = { ...row.itemKey };
@@ -283,5 +294,26 @@ watch(currentPage, (newVal, oldVal) => {
   .va-input {
     display: block;
   }
+}
+.alert {
+  position: absolute; 
+  right: 5px;
+  z-index: auto; 
+  background-color: red; 
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 20px; 
+  width: 25%; 
+}
+
+.alert.success {
+  background-color: #4CAF50; 
+}
+
+.alert.error {
+  background-color: #f44336; 
 }
 </style>

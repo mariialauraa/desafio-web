@@ -1,6 +1,10 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
 
+    <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
+      {{ $store.alert.message }}
+    </div>
+
     <h1 style="color: #B50025;">
       <strong>Adicionar nova carga:</strong>
     </h1>
@@ -28,7 +32,10 @@
         class="ml-2 mr-2"
       />
 
-      <va-button style="margin-top: 18px;" @click="createLoad">
+      <va-button 
+        style="margin-top: 18px;" 
+        @click="createLoad"
+      >        
         Adicionar
       </va-button>
     </div>
@@ -86,19 +93,14 @@
     </VaModal>
 
     <div class="mt-4">
-      <VaButton
-        :disabled="currentPage <= 1"
-        @click="changePage(currentPage - 1)"
-      >
-        &lt;
-      </VaButton>
-
-      <VaButton
-        :disabled="loads.lenght < loadsPerPage || currentPage >= totalPages"
-        @click="changePage(currentPage + 1)"
-      >
-        &gt;
-      </VaButton>
+      <VaPagination
+        v-model="currentPage"
+        :pages="totalPages"
+        :visible-pages="3"
+        size="medium"
+        @input="changePage($event)"
+        class="my-pagination justify-center"
+      />
     </div>
   </div>
 </template>
@@ -106,10 +108,14 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
+import { useAlertStore } from '@/stores/alertStore';
+import { VaPagination } from 'vuestic-ui';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const $store = useAlertStore();
 
 const loadsPerPage = 10; 
 const currentPage = ref(1);
@@ -117,10 +123,10 @@ const totalPages = ref(0);
 
 const loads = ref([]);
 const columns = ref([
-  { key: "id", sortable: true },
-  { key: "code", sortable: true },
-  { key: "delivery_date", sortable: true },
-  { key: "actions", width: 80 },
+{ key: "id", label: "id", sortable: true },
+  { key: "code", label: "código", sortable: true },
+  { key: "delivery_date", label: "data de entrega", sortable: true },
+  { key: "actions", label: "ações", width: 80 },
 ]);
 
 const newLoad = reactive({
@@ -155,7 +161,11 @@ const fetchData = async () => {
 
     const sortedLoads = response.data.loads.sort((a, b) => a.id - b.id);
     loads.value = sortedLoads;
-    totalPages.value = Math.ceil(response.data.total / loadsPerPage); 
+    if (response.data.meta) {
+      totalPages.value = response.data.meta.total_pages;
+    } else {
+      console.error('Dados de paginação não encontrados na resposta da API');
+    }
   } catch (error) {
     console.error('Erro ao obter lista de cargas', error);
   }
@@ -168,7 +178,7 @@ const changePage = (newPage) => {
 
 const createLoad = async () => {
   if (!newLoad.code || !newLoad.delivery_date) {
-    alert('Por favor, preencha todos os campos.');
+    $store.setAlert('Por favor, preencha todos os campos.', 'error');
     return;
   }
 
@@ -184,9 +194,10 @@ const createLoad = async () => {
     if (response.status === 200) {            
       resetEditedLoad();
       fetchData(currentPage.value);
+      $store.setAlert('Carga criada com sucesso.', 'success');
     }
   } catch (error) {
-    console.error('Erro ao criar carga', error.response || error);
+    $store.setAlert('Erro ao criar carga', 'error');
   }
 };
 
@@ -199,8 +210,9 @@ const confirmDeletion = async () => {
       });
       loads.value = loads.value.filter(u => u.id !== loadToDelete.value.itemKey.id);
       loadToDelete.value = null; 
+      $store.setAlert('Carga deletada com sucesso', 'success');
     } catch (error) {
-      console.error('Erro ao excluir carga', error);
+      $store.setAlert('Erro ao excluir carga', 'error');
     }
   }
 };
@@ -216,11 +228,10 @@ const editLoad = async () => {
       const updatedLoad = response.data.load;
       loads.value = loads.value.map(load => (load.id === updatedLoad.id ? updatedLoad : load));
       resetEditedLoad();
-    } else {
-      console.error('Erro ao editar carga:', response.status, response.data);
-    }
+      $store.setAlert('Carga editada com sucesso', 'success');
+    } 
   } catch (error) {
-    console.error('Erro ao editar carga', error);
+    $store.setAlert('Erro ao editar carga', 'error');
   }
 };
 
@@ -263,5 +274,26 @@ watch(currentPage, (newVal, oldVal) => {
   .va-input {
     display: block;
   }
+}
+.alert {
+  position: absolute; 
+  right: 5px;
+  z-index: auto; 
+  background-color: red; 
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 20px; 
+  width: 25%; 
+}
+
+.alert.success {
+  background-color: #4CAF50; 
+}
+
+.alert.error {
+  background-color: #f44336; 
 }
 </style>

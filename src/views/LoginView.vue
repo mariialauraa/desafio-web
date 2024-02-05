@@ -19,6 +19,7 @@ const newUser = ref({
 })
 
 const loginAttempted = ref(false);
+const createAccountAttempted = ref(false);
 const { errorMessagesNamed } = useForm("myForm")
 
 const login = async () => {
@@ -32,6 +33,7 @@ const login = async () => {
 };
 
 const createAccount = async () => {
+  createAccountAttempted.value = true;
   try {
     const userData = {
       name: newUser.value.name,
@@ -43,7 +45,7 @@ const createAccount = async () => {
     $store.setAlert('Conta criada com sucesso', 'success');
     resetCreateAccountForm();
   } catch (error) {
-    $store.setAlert('Todos os campos precisam ser preenchidos', 'error');
+    $store.setAlert('Erro ao criar a conta. Por favor, verifique os dados e tente novamente.', 'error');
   }
 };
 
@@ -64,7 +66,7 @@ const resetCreateAccountForm = () => {
 
     <div class="relevo">
       <VaForm 
-        ref="myForm" immediate hide-error-messages
+        ref="myForm"
         class="w-full max-w-md"
         tag="form"
         @submit.prevent="login"
@@ -90,23 +92,15 @@ const resetCreateAccountForm = () => {
           <VaButton
             type="submit"
             class="mt-3 mb-3"
+            gradient 
           >
             Entrar
           </VaButton>
         </div>
       </VaForm>
-
-      <div v-if="loginAttempted" v-for="errors, fieldName in errorMessagesNamed" :key="fieldName">
-        <span v-if="errors.length > 0" class="va-title">{{ fieldName }}</span>
-        <ul>
-          <li v-for="error in errors" :key="error">
-            {{ error }}
-          </li>
-        </ul>
-      </div>
     </div>
 
-    <div class="mt-2 mb-2 flex items-center">
+    <div class="mt-4 mb-4 flex items-center">
       <span class="mx-4 text-red-500">ou</span>
     </div>
 
@@ -119,12 +113,16 @@ const resetCreateAccountForm = () => {
         <VaInput
           v-model="newUser.name"
           label="Nome"
+          name="Nome"
+          :rules="[(v) => Boolean(v) || 'Nome é obrigatória']"
           class="mt-3"
         />
   
         <VaInput
           v-model="newUser.login"
           label="E-mail"
+          name="E-mail"
+          :rules="[(v) => Boolean(v) || 'E-mail é obrigatório']"
           class="mt-3"
         />
   
@@ -132,6 +130,8 @@ const resetCreateAccountForm = () => {
           v-model="newUser.password"        
           type="password"
           label="Senha"
+          name="Senha"
+          :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
           class="mt-3"
         />
   
@@ -139,6 +139,7 @@ const resetCreateAccountForm = () => {
           <VaButton
             type="submit"
             class="mt-3"
+            gradient 
           >
             Cadastrar
           </VaButton>
@@ -166,10 +167,10 @@ const resetCreateAccountForm = () => {
 }
 
 .relevo {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Efeito de relevo */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
   padding: 20px;
-  border-radius: 8px; /* Bordas arredondadas */
-  background-color: #FFF; /* Fundo branco para contraste */
+  border-radius: 8px; 
+  background-color: #FFF; 
 }
 .va-form {
   width: 100%;
@@ -186,23 +187,23 @@ const resetCreateAccountForm = () => {
   font-weight: bold;
 }
 .alert {
-  position: static; /* Temporariamente, para teste */
-  z-index: auto; /* Valor padrão para teste */
+  position: static; 
+  z-index: auto; 
   background-color: red; 
   color: white;
   text-align: center;
   font-weight: bold;
   padding: 10px;
   border-radius: 5px;
-  margin: 20px; /* Ajuste para garantir visibilidade */
-  width: 25%; /* Largura explícita para visibilidade */
+  margin: 20px; 
+  width: 25%; 
 }
 
 .alert.success {
-  background-color: #4CAF50; /* Verde para sucesso */
+  background-color: #4CAF50; 
 }
 
 .alert.error {
-  background-color: #f44336; /* Vermelho para erro */
+  background-color: #f44336; 
 }
 </style>

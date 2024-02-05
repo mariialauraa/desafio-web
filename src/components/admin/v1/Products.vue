@@ -1,6 +1,10 @@
 <template>
   <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
 
+    <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
+      {{ $store.alert.message }}
+    </div>
+
     <h1 style="color: #B50025;">
       <strong>Adicionar novo produto:</strong>
     </h1>
@@ -28,7 +32,10 @@
         class="ml-2 mr-2"
       />
 
-      <va-button style="margin-top: 18px;" @click="createProduct">
+      <va-button 
+        style="margin-top: 18px;" 
+        @click="createProduct"
+      >
         Adicionar
       </va-button>
     </div>
@@ -77,7 +84,6 @@
     <VaModal
       ref="deleteConfirmationModal"
       @ok="confirmDeletion"
-      @cancel="cancelDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
       stateful
@@ -85,32 +91,31 @@
       <h3 class="va-h3">Confirmação</h3>
       <p>Tem certeza que deseja deletar este produto?</p>
     </VaModal>
-  </div>
 
-  <div class="mt-4 ml-3">
-    <VaButton
-      :disabled="currentPage <= 1"
-      @click="changePage(currentPage - 1)"
-    >
-      &lt;
-    </VaButton>
-
-    <VaButton
-      :disabled="products.lenght < productsPerPage || currentPage >= totalPages"
-      @click="changePage(currentPage + 1)"
-    >
-      &gt;
-    </VaButton>
+    <div class="mt-4">
+      <VaPagination
+        v-model="currentPage"
+        :pages="totalPages"
+        :visible-pages="3"
+        size="medium"
+        @input="changePage($event)"
+        class="my-pagination justify-center"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
+import { useAlertStore } from '@/stores/alertStore';
+import { VaPagination } from 'vuestic-ui';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
+
+const $store = useAlertStore();
 
 const productsPerPage = 10; 
 const currentPage = ref(1);
@@ -118,10 +123,10 @@ const totalPages = ref(0);
 
 const products = ref([]);
 const columns = ref([
-  { key: "id", sortable: true },
-  { key: "name", sortable: true },
-  { key: "ballast", sortable: true },
-  { key: "actions", width: 80 },
+  { key: "id", label: "id", sortable: true },
+  { key: "name", label: "produto", sortable: true },
+  { key: "ballast", label: "lastro", sortable: true },
+  { key: "actions", label: "ações", width: 80 },
 ]);
 
 const newProduct = reactive({
@@ -156,7 +161,11 @@ const fetchData = async () => {
 
     const sortedProducts = response.data.products.sort((a, b) => a.id - b.id);
     products.value = sortedProducts;
-    totalPages.value = Math.ceil(response.data.total / productsPerPage); 
+    if (response.data.meta) {
+      totalPages.value = response.data.meta.total_pages;
+    } else {
+      console.error('Dados de paginação não encontrados na resposta da API');
+    }
   } catch (error) {
     console.error('Erro ao obter lista de produtos', error);
   }
@@ -169,7 +178,7 @@ const changePage = (newPage) => {
 
 const createProduct = async () => {
   if (!newProduct.name || !newProduct.ballast) {
-    alert('Por favor, preencha todos os campos.');
+    $store.setAlert('Por favor, preencha todos os campos.', 'error');
     return;
   }
 
@@ -185,9 +194,10 @@ const createProduct = async () => {
     if (response.status === 200) {           
       resetEditedProduct();
       fetchData(currentPage.value);
+      $store.setAlert('Produto criado com sucesso.', 'success');
     }
   } catch (error) {
-    console.error('Erro ao criar produto', error.response || error);
+    $store.setAlert('Erro ao criar produto. Produto já existe!', 'error');
   }
 };
 
@@ -200,8 +210,9 @@ const confirmDeletion = async () => {
       });
       products.value = products.value.filter(u => u.id !== productToDelete.value.itemKey.id);
       productToDelete.value = null; 
+      $store.setAlert('Produto deletado com sucesso', 'success');
     } catch (error) {
-      console.error('Erro ao excluir produto', error);
+      $store.setAlert('Erro ao excluir produto', 'error');
     }
   }
 };
@@ -217,16 +228,14 @@ const editProduct = async () => {
       const updatedProduct = response.data.product;
       products.value = products.value.map(product => (product.id === updatedProduct.id ? updatedProduct : product));
       resetEditedProduct();
-    } else {
-      console.error('Erro ao editar produto:', response.status, response.data);
-    }
+      $store.setAlert('Produto editado com sucesso', 'success');
+    } 
   } catch (error) {
-    console.error('Erro ao editar produto', error);
+    $store.setAlert('Erro ao editar produto', 'error');
   }
 };
 
-const openModalToEditProduct = (row) => {
-  console.log('Objeto recebido em openModalToEditProduct:', row); 
+const openModalToEditProduct = (row) => { 
   if (row && row.itemKey && row.itemKey.id) {
     editedProductId.value = row.itemKey.id;
     editedProduct.value = { ...row.itemKey };
@@ -265,5 +274,27 @@ watch(currentPage, (newVal, oldVal) => {
   .va-input {
     display: block;
   }
+}
+
+.alert {
+  position: absolute; 
+  right: 5px;
+  z-index: auto; 
+  background-color: red; 
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 20px; 
+  width: 25%; 
+}
+
+.alert.success {
+  background-color: #4CAF50; 
+}
+
+.alert.error {
+  background-color: #f44336; 
 }
 </style>

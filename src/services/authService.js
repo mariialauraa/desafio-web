@@ -12,7 +12,6 @@ const AuthService = {
       localStorage.setItem('user', JSON.stringify(res.data.user))
       return res.data            
     } catch (error) {
-      console.log(error)
       throw new Error('Usuário ou senha inválidos')
     }
   },
@@ -33,7 +32,6 @@ const AuthService = {
       localStorage.setItem('user', JSON.stringify(res.data.user));  
       return res.data;
     } catch (error) {
-      console.log(error);
       throw new Error('Erro ao criar conta'); 
     }
   },
