@@ -74,10 +74,10 @@
         class="my-6" 
         label="Código" 
       />
-      <VaDateInput  
-        v-model="editedLoad.delivery_date" 
-        class="my-6" 
-        label="Data" 
+      <input
+        v-model="editedLoad.delivery_date"
+        type="date"
+        class="date-field my-6"
       />
     </VaModal>
 
@@ -274,6 +274,19 @@ watch(currentPage, (newVal, oldVal) => {
   .va-input {
     display: block;
   }
+}
+
+.date-field {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px; 
+  margin-top: 1rem;
+}
+
+.date-field:hover {
+  border-color: #B71C1C; 
 }
 .alert {
   position: absolute; 

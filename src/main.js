@@ -30,7 +30,10 @@ app.use(createVuestic({
         // Custom colors
         yourCustomColor: "#b20008",
         colorA: "#ad0008",
-        colorB: "#a80008"
+        colorB: "#a80008",
+        canvaA: "#b92a2e",
+        canvaB: "#da4354",
+
       },
     },
   },

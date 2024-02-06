@@ -12,11 +12,14 @@
             :icon="isSidebarVisible ? 'menu_open' : 'menu'"
             @click="isSidebarVisible = !isSidebarVisible"
           />
+          <VaNavbarItem class="font-bold text-lg ml-2">
+            <img src="/logo-easypallet.png" alt="Easy Pallet Logo" width="90" height="50">
+          </VaNavbarItem>
         </template>
         
         <template #center>
-          <VaNavbarItem class="font-bold text-lg" style="margin: auto;">
-            <img src="/logo-easypallet.png" alt="Easy Pallet Logo" width="80" height="60">
+          <VaNavbarItem class="font-bold text-lg" style="color: #B50025;">
+            <strong>Bem-vindo, {{ userName }}!</strong>
           </VaNavbarItem>
         </template>
 
@@ -24,7 +27,7 @@
           <VaButton 
             @click="logout" 
             size="large"
-            gradient
+            preset="primary"
             style="margin-left: auto;"
           >
             <VaIcon name="logout" :size="medium_size"/>
@@ -36,16 +39,18 @@
 
     <template #left>
       <VaSidebar 
-        color="secondary"
-        gradient
+        color="canvaA"
         v-model="isSidebarVisible" 
-        class="custom-sidebar">
+        class="custom-sidebar"
+        hoverable
+        minimized-width="64px"
+      >
         <VaSidebarItem
           v-for="(item, index) in menu"
           :key="index"
           :active="isActive(item.title)"
           @click="setActive(item.title)"
-          active-color="colorB"
+          active-color="canvaB"
         >
           <VaSidebarItemContent>
             <VaIcon :name="item.icon" />
