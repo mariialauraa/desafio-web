@@ -3,7 +3,6 @@ import router from '@/router';
 import AuthService from '@/services/authService';
 import { ref } from 'vue'
 import { useAlertStore } from '@/stores/alertStore';
-import { useForm } from "vuestic-ui";
 
 const $store = useAlertStore();
 
@@ -20,7 +19,6 @@ const newUser = ref({
 
 const loginAttempted = ref(false);
 const createAccountAttempted = ref(false);
-const { errorMessagesNamed } = useForm("myForm")
 
 const login = async () => {
   loginAttempted.value = true;
@@ -45,7 +43,11 @@ const createAccount = async () => {
     $store.setAlert('Conta criada com sucesso', 'success');
     resetCreateAccountForm();
   } catch (error) {
-    $store.setAlert('Erro ao criar a conta. Por favor, verifique os dados e tente novamente.', 'error');
+    if (error.message.includes('Login já está em uso')) {
+      $store.setAlert('Usuário duplicado. O usuário já existe.', 'error');
+    } else {
+      $store.setAlert('Erro ao criar a conta. Por favor, verifique os dados e tente novamente.', 'error');
+    }
   }
 };
 
@@ -77,17 +79,38 @@ const resetCreateAccountForm = () => {
           name="E-mail"
           :rules="[(v) => Boolean(v) || 'E-mail é obrigatório']"
           class="mt-3"
-        />
+        >
+          <template #appendInner>
+            <VaIcon
+              name="mail_outline"
+              color="secondary"
+            />
+          </template>          
+        </VaInput>
   
-        <VaInput
-          v-model="user.password"
-          type="password"
-          label="Senha"
-          name="Senha"
-          :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
-          class="mt-3"
-        />
-  
+        <VaValue
+          v-slot="isPasswordVisible"
+          :default-value="false"
+        >
+          <VaInput
+            v-model="user.password"
+            :type="isPasswordVisible.value ? 'text' : 'password'"
+            label="Senha"
+            name="Senha"
+            :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
+            class="mt-3"
+            @click-append-inner="isPasswordVisible.value = !isPasswordVisible.value"
+          >
+              <template #appendInner>
+              <VaIcon
+                :name="isPasswordVisible.value ? 'visibility_off' : 'visibility'"
+                size="small"
+                color="secondary"
+              />
+            </template>
+          </VaInput>
+        </VaValue>
+    
         <div class="mt-3 flex justify-center">
           <VaButton
             type="submit"
@@ -114,26 +137,51 @@ const resetCreateAccountForm = () => {
           v-model="newUser.name"
           label="Nome"
           name="Nome"
-          :rules="[(v) => Boolean(v) || 'Nome é obrigatória']"
           class="mt-3"
-        />
+        >
+          <template #appendInner>
+            <VaIcon
+              name="person"
+              color="secondary"
+            />
+          </template>  
+        </VaInput>
   
         <VaInput
           v-model="newUser.login"
           label="E-mail"
           name="E-mail"
-          :rules="[(v) => Boolean(v) || 'E-mail é obrigatório']"
           class="mt-3"
-        />
+        >
+          <template #appendInner>
+              <VaIcon
+                name="mail_outline"
+                color="secondary"
+              />
+            </template>          
+        </VaInput>
   
-        <VaInput
-          v-model="newUser.password"        
-          type="password"
-          label="Senha"
-          name="Senha"
-          :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
-          class="mt-3"
-        />
+        <VaValue
+          v-slot="isPasswordVisible"
+          :default-value="false"
+        >
+          <VaInput
+            v-model="newUser.password"        
+            :type="isPasswordVisible.value ? 'text' : 'password'"
+            label="Senha"
+            name="Senha"
+            class="mt-3"
+            @click-append-inner="isPasswordVisible.value = !isPasswordVisible.value"
+          >
+            <template #appendInner>
+              <VaIcon
+                :name="isPasswordVisible.value ? 'visibility_off' : 'visibility'"
+                size="small"
+                color="secondary"
+              />
+            </template>
+          </VaInput>
+        </VaValue>
   
         <div class="mt-3 flex justify-center">
           <VaButton

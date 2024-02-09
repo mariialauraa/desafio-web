@@ -158,9 +158,7 @@ const fetchData = async () => {
     const response = await api.get(`/admin/v1/products?page=${currentPage.value}&limit=${productsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-
-    const sortedProducts = response.data.products.sort((a, b) => a.id - b.id);
-    products.value = sortedProducts;
+    products.value = response.data.products;
     if (response.data.meta) {
       totalPages.value = response.data.meta.total_pages;
     } else {
@@ -169,11 +167,6 @@ const fetchData = async () => {
   } catch (error) {
     console.error('Erro ao obter lista de produtos', error);
   }
-};
-
-const changePage = (newPage) => {
-  currentPage.value = newPage;
-  fetchData(newPage);
 };
 
 const createProduct = async () => {
@@ -197,7 +190,14 @@ const createProduct = async () => {
       $store.setAlert('Produto criado com sucesso.', 'success');
     }
   } catch (error) {
-    $store.setAlert('Erro ao criar produto. Produto já existe!', 'error');
+    if (error.response && error.response.status === 422) {
+      const errors = error.response.data.errors.fields;
+      if (errors.name && errors.name.includes('já está em uso')) {
+        $store.setAlert('Produto duplicado. O produto já existe.', 'error');
+        return;
+      }
+    }
+    $store.setAlert('Erro ao criar produto', 'error');
   }
 };
 
@@ -248,10 +248,13 @@ onMounted(() => {
   fetchData(currentPage.value);
 });
 
-watch(currentPage, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    fetchData(newVal);
-  }
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
+};
+
+watch(currentPage, (newVal) => {
+  fetchData(newVal);
 });
 </script>
 

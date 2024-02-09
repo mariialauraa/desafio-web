@@ -12,7 +12,11 @@ const AuthService = {
       localStorage.setItem('user', JSON.stringify(res.data.user))
       return res.data            
     } catch (error) {
-      throw new Error('Usuário ou senha inválidos')
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error('Usuário ou senha inválidos');
+      }
     }
   },
 
@@ -32,7 +36,11 @@ const AuthService = {
       localStorage.setItem('user', JSON.stringify(res.data.user));  
       return res.data;
     } catch (error) {
-      throw new Error('Erro ao criar conta'); 
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error('Erro ao criar conta'); 
+      }
     }
   },
 };

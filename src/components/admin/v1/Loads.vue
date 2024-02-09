@@ -158,9 +158,7 @@ const fetchData = async () => {
     const response = await api.get(`/admin/v1/loads?page=${currentPage.value}&limit=${loadsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-
-    const sortedLoads = response.data.loads.sort((a, b) => a.id - b.id);
-    loads.value = sortedLoads;
+    loads.value = response.data.loads;
     if (response.data.meta) {
       totalPages.value = response.data.meta.total_pages;
     } else {
@@ -169,11 +167,6 @@ const fetchData = async () => {
   } catch (error) {
     console.error('Erro ao obter lista de cargas', error);
   }
-};
-
-const changePage = (newPage) => {
-  currentPage.value = newPage;
-  fetchData(newPage);
 };
 
 const createLoad = async () => {
@@ -191,12 +184,25 @@ const createLoad = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (response.status === 200) {            
+    if (response.status === 200) {
       resetEditedLoad();
       fetchData(currentPage.value);
       $store.setAlert('Carga criada com sucesso.', 'success');
     }
   } catch (error) {
+    if (error.response && error.response.status === 422) {
+      const errors = error.response.data.errors.fields;
+
+      if (errors.code && errors.code.includes('já está em uso')) {
+        $store.setAlert('Carga duplicada. O código já existe.', 'error');
+        return;
+      }
+
+      if (errors.delivery_date && errors.delivery_date.includes('deve ser uma data futura')) {
+        $store.setAlert('A data de entrega deve ser uma data futura.', 'error');
+        return;
+      }
+    }
     $store.setAlert('Erro ao criar carga', 'error');
   }
 };
@@ -231,6 +237,19 @@ const editLoad = async () => {
       $store.setAlert('Carga editada com sucesso', 'success');
     } 
   } catch (error) {
+    if (error.response && error.response.status === 422) {
+      const errors = error.response.data.errors.fields;
+
+      if (errors.code && errors.code.includes('já está em uso')) {
+        $store.setAlert('Carga duplicada. O código já existe.', 'error');
+        return;
+      }
+
+      if (errors.delivery_date && errors.delivery_date.includes('deve ser uma data futura')) {
+        $store.setAlert('A data de entrega deve ser uma data futura.', 'error');
+        return;
+      }
+    }
     $store.setAlert('Erro ao editar carga', 'error');
   }
 };
@@ -248,10 +267,13 @@ onMounted(() => {
   fetchData(currentPage.value);
 });
 
-watch(currentPage, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    fetchData(newVal);
-  }
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
+};
+
+watch(currentPage, (newVal) => {
+  fetchData(newVal);
 });
 </script>
 

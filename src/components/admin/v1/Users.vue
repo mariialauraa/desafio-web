@@ -175,9 +175,7 @@ const fetchData = async (page = 1) => {
     const response = await api.get(`/admin/v1/users?page=${page}&limit=${usersPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-
-    const sortedUsers = response.data.users.sort((a, b) => a.id - b.id);
-    users.value = sortedUsers;
+    users.value = response.data.users;
     if (response.data.meta) {
       totalPages.value = response.data.meta.total_pages;
     } else {
@@ -186,11 +184,6 @@ const fetchData = async (page = 1) => {
   } catch (error) {
     console.error('Erro ao obter lista de usuários', error);
   }
-};
-
-const changePage = (newPage) => {
-  currentPage.value = newPage;
-  fetchData(newPage);
 };
 
 const createUser = async () => {
@@ -217,7 +210,12 @@ const createUser = async () => {
       $store.setAlert('Usuário criado com sucesso.', 'success');
     }
   } catch (error) {
-    $store.setAlert('Erro ao criar usuário. Usuário já existe!', 'error');
+    const errorMessage = error.response?.data?.error || 'Erro desconhecido ao criar a conta.';
+    if (errorMessage.includes('Login já está em uso')) {
+      $store.setAlert('Usuário duplicado. O usuário já existe.', 'error');
+    } else {
+      $store.setAlert(errorMessage, 'error');
+    }   
   }
 };
 
@@ -268,10 +266,13 @@ onMounted(() => {
   fetchData(currentPage.value);
 });
 
-watch(currentPage, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    fetchData(newVal);
-  }
+const changePage = (newPage) => {
+  currentPage.value = newPage;
+  fetchData(newPage);
+};
+
+watch(currentPage, (newVal) => {
+  fetchData(newVal);
 });
 </script>
 
