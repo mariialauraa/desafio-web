@@ -8,6 +8,7 @@
     <h1 style="color: #B50025; margin-top: 20px;">
       <strong>Adicionar novo usuário:</strong>
     </h1>
+
     <div style="margin-top: 20px;">
       <VaModal
         class="modal-crud"
@@ -86,12 +87,6 @@
         v-model="editedUser.login" 
         class="my-6" 
         label="Email" 
-      />
-      <VaInput 
-        v-model="editedUser.password" 
-        class="my-6" 
-        label="Password" 
-        type="password"
       />
     </VaModal>
 
@@ -220,7 +215,14 @@ const createUser = async () => {
 };
 
 const confirmDeletion = async () => {
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
+
   if (userToDelete.value) {
+    if (userToDelete.value.itemKey.id === loggedInUser.id) {
+      $store.setAlert('Não é possível deletar sua própria conta.', 'error');
+      return; 
+    }
+
     try {
       const token = localStorage.getItem('token');
       await api.delete(`/admin/v1/users/${userToDelete.value.itemKey.id}`, {

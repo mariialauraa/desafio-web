@@ -152,13 +152,23 @@ const promptDeleteLoad = (row) => {
   deleteConfirmationModal.value.show(); 
 };
 
+const formatDate = (dateString) => {
+  const [year, month, day] = dateString.split('-');
+  return `${day}/${month}/${year}`;
+};
+
 const fetchData = async () => {
   try {
     const token = localStorage.getItem('token');
     const response = await api.get(`/admin/v1/loads?page=${currentPage.value}&limit=${loadsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    loads.value = response.data.loads;
+    const formattedLoads = response.data.loads.map(load => ({
+      ...load,
+      delivery_date: formatDate(load.delivery_date),
+
+    }));
+    loads.value = formattedLoads;
     if (response.data.meta) {
       totalPages.value = response.data.meta.total_pages;
     } else {
@@ -226,12 +236,18 @@ const confirmDeletion = async () => {
 const editLoad = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.patch(`/admin/v1/loads/${editedLoadId.value}`, editedLoad.value, {
+    const response = await api.patch(`/admin/v1/loads/${editedLoadId.value}`, {
+      ...editedLoad.value,
+      delivery_date: formatDate(editedLoad.value.delivery_date) 
+    }, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     if (response.status === 200) {
-      const updatedLoad = response.data.load;
+      const updatedLoad = {
+        ...response.data.load,
+        delivery_date: formatDate(response.data.load.delivery_date) 
+      };
       loads.value = loads.value.map(load => (load.id === updatedLoad.id ? updatedLoad : load));
       resetEditedLoad();
       $store.setAlert('Carga editada com sucesso', 'success');

@@ -1,22 +1,22 @@
 <template>
   <VaLayout
-    :top="{ fixed: true, order: 2 }"
-    :left="{ fixed: true, absolute: breakpoints.smDown, order: 1, overlay: breakpoints.smDown && isSidebarVisible }"
+    :top="{ fixed: true, order: 2 }" 
+    :left="{ fixed: true, absolute: breakpoints.smDown, order: 1, overlay: breakpoints.smDown && isSidebarVisible }" 
     @left-overlay-click="isSidebarVisible = false"
   >
     <template #top>
       <VaNavbar shadowed class="custom-navbar-height">
         <template #left>
-          <VaButton
-            preset="secondary"
-            :icon="isSidebarVisible ? 'menu_open' : 'menu'"
+          <VaButton 
+            preset="secondary" 
+            :icon="isSidebarVisible ? 'menu_open' : 'menu'" 
             @click="isSidebarVisible = !isSidebarVisible"
           />
           <VaNavbarItem class="font-bold text-lg ml-2">
             <img src="/logo-easypallet.png" alt="Easy Pallet Logo" width="90" height="50">
           </VaNavbarItem>
         </template>
-        
+
         <template #center>
           <VaNavbarItem class="font-bold text-lg" style="color: #B50025;">
             <strong>Bem-vindo, {{ userName }}!</strong>
@@ -26,30 +26,29 @@
         <template #right>
           <VaButton 
             @click="logout" 
-            size="large"
-            preset="primary"
+            size="large" preset="primary" 
             style="margin-left: auto;"
           >
-            <VaIcon name="logout" :size="medium_size"/>
+            <VaIcon name="logout"/>
             <span>Sair</span>
           </VaButton>
-        </template>
+        </template>        
       </VaNavbar>
     </template>
 
     <template #left>
       <VaSidebar 
-        color="canvaA"
+        color="canvaA" 
         v-model="isSidebarVisible" 
-        class="custom-sidebar"
-        hoverable
+        class="custom-sidebar" 
+        hoverable 
         minimized-width="64px"
       >
-        <VaSidebarItem
-          v-for="(item, index) in menu"
-          :key="index"
-          :active="isActive(item.title)"
-          @click="setActive(item.title)"
+        <VaSidebarItem 
+          v-for="(item, index) in menu" 
+          :key="index" 
+          :active="isActive(item.title)" 
+          @click="setActive(item.title)" 
           active-color="canvaB"
         >
           <VaSidebarItemContent>
@@ -64,10 +63,18 @@
 
     <template #content>
       <main>
-        <Dashboard v-if="page === 1" />
-        <Loads v-else-if="page === 2" />
-        <Products v-else-if="page === 3" />
-        <Users v-else-if="page === 4" />
+        <div class="page-transition" v-show="page === 1">
+          <Dashboard />
+        </div>
+        <div class="page-transition" v-show="page === 2">
+          <Loads />
+        </div>
+        <div class="page-transition" v-show="page === 3">
+          <Products />
+        </div>
+        <div class="page-transition" v-show="page === 4">
+          <Users />
+        </div>
       </main>
     </template>
   </VaLayout>
@@ -87,11 +94,14 @@ const userName = ref('Convidado');
 const breakpoints = useBreakpoint();
 const isSidebarVisible = ref(breakpoints.smUp);
 const page = ref(1);
+const activeItem = ref('Home');
 
+// Determina se um item está ativo com base no título do item
 function isActive(item) {
   return item === activeItem.value;
 }
 
+// Define o item ativo e muda a página com base na ação do item
 function setActive(item) {
   activeItem.value = item;
   const menuItem = menu.find(menuItem => menuItem.title === item);
@@ -100,6 +110,7 @@ function setActive(item) {
   }
 }
 
+// Atualiza o nome do usuário e a visibilidade da barra lateral
 watchEffect(() => {
   const user = JSON.parse(localStorage.getItem('user'));
   userName.value = user ? user.name : 'Convidado';
@@ -122,6 +133,14 @@ const menu = [
   { icon: 'person', title: 'Usuários', action: () => page.value = 4 },
   { icon: 'logout', title: 'Sair', action: logout },
 ];
-
-const activeItem = ref('Home');
 </script>
+
+<style>
+.page-transition {
+  transition: opacity 0.5s ease;
+  opacity: 1;
+}
+.page-transition.leave-active {
+  opacity: 0;
+}
+</style>
