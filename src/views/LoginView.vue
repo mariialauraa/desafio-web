@@ -59,17 +59,19 @@ const resetCreateAccountForm = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center"> 
-    <img src="/logo-easypallet.png" alt="Easy Pallet Logo" width="300" height="100" class="mt-4 mb-4">
+  <div class="login-container">
+    <div class="logo">
+      <img src="/logo-easypallet.png" alt="Easy Pallet Logo" class="logo-image">
+    </div>
 
     <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
       {{ $store.alert.message }}
     </div>
 
-    <div class="relevo">
+    <div class="form-container">
       <VaForm 
         ref="myForm"
-        class="w-full max-w-md"
+        class="form"
         tag="form"
         @submit.prevent="login"
       >
@@ -78,99 +80,21 @@ const resetCreateAccountForm = () => {
           label="E-mail"
           name="E-mail"
           :rules="[(v) => Boolean(v) || 'E-mail é obrigatório']"
-          class="mt-3"
+          class="form-input"
         >
           <template #appendInner>
-            <VaIcon
-              name="mail_outline"
-              color="secondary"
-            />
+            <VaIcon name="mail_outline" color="secondary"/>
           </template>          
         </VaInput>
-  
-        <VaValue
-          v-slot="isPasswordVisible"
-          :default-value="false"
-        >
+
+        <VaValue v-slot="isPasswordVisible" :default-value="false">
           <VaInput
             v-model="user.password"
             :type="isPasswordVisible.value ? 'text' : 'password'"
             label="Senha"
             name="Senha"
             :rules="[(v) => Boolean(v) || 'Senha é obrigatória']"
-            class="mt-3"
-            @click-append-inner="isPasswordVisible.value = !isPasswordVisible.value"
-          >
-              <template #appendInner>
-              <VaIcon
-                :name="isPasswordVisible.value ? 'visibility_off' : 'visibility'"
-                size="small"
-                color="secondary"
-              />
-            </template>
-          </VaInput>
-        </VaValue>
-    
-        <div class="mt-3 flex justify-center">
-          <VaButton
-            type="submit"
-            class="mt-3 mb-3"
-            gradient 
-          >
-            Entrar
-          </VaButton>
-        </div>
-      </VaForm>
-    </div>
-
-    <div class="mt-4 mb-4 flex items-center">
-      <span class="mx-4 text-red-500">ou</span>
-    </div>
-
-    <div class="relevo">
-      <VaForm
-        class="w-full max-w-md"
-        tag="form"
-        @submit.prevent="createAccount"
-      >
-        <VaInput
-          v-model="newUser.name"
-          label="Nome"
-          name="Nome"
-          class="mt-3"
-        >
-          <template #appendInner>
-            <VaIcon
-              name="person"
-              color="secondary"
-            />
-          </template>  
-        </VaInput>
-  
-        <VaInput
-          v-model="newUser.login"
-          label="E-mail"
-          name="E-mail"
-          class="mt-3"
-        >
-          <template #appendInner>
-              <VaIcon
-                name="mail_outline"
-                color="secondary"
-              />
-            </template>          
-        </VaInput>
-  
-        <VaValue
-          v-slot="isPasswordVisible"
-          :default-value="false"
-        >
-          <VaInput
-            v-model="newUser.password"        
-            :type="isPasswordVisible.value ? 'text' : 'password'"
-            label="Senha"
-            name="Senha"
-            class="mt-3"
+            class="form-input"
             @click-append-inner="isPasswordVisible.value = !isPasswordVisible.value"
           >
             <template #appendInner>
@@ -182,43 +106,131 @@ const resetCreateAccountForm = () => {
             </template>
           </VaInput>
         </VaValue>
-  
-        <div class="mt-3 flex justify-center">
-          <VaButton
-            type="submit"
-            class="mt-3"
-            gradient 
+
+        <VaButton
+          type="submit"
+          class="submit-button"
+          gradient
+        >
+          Entrar
+        </VaButton>
+      </VaForm>
+    </div>
+
+    <div class="divider">
+      <span class="mx-4 text-red-500">ou</span>
+    </div>
+
+    <div class="form-container">
+      <VaForm
+        class="form"
+        tag="form"
+        @submit.prevent="createAccount"
+      >
+        <VaInput
+          v-model="newUser.name"
+          label="Nome"
+          name="Nome"
+          class="form-input"
+        >
+          <template #appendInner>
+            <VaIcon 
+              name="person" 
+              color="secondary"
+            />
+          </template>  
+        </VaInput>
+
+        <VaInput
+          v-model="newUser.login"
+          label="E-mail"
+          name="E-mail"
+          class="form-input"
+        >
+          <template #appendInner>
+            <VaIcon 
+              name="mail_outline" 
+              color="secondary"
+            />
+          </template>          
+        </VaInput>
+
+        <VaValue v-slot="isPasswordVisible" :default-value="false">
+          <VaInput
+            v-model="newUser.password"        
+            :type="isPasswordVisible.value ? 'text' : 'password'"
+            label="Senha"
+            name="Senha"
+            class="form-input"
+            @click-append-inner="isPasswordVisible.value = !isPasswordVisible.value"
           >
-            Cadastrar
-          </VaButton>
-        </div>
+            <template #appendInner>
+              <VaIcon
+                :name="isPasswordVisible.value ? 'visibility_off' : 'visibility'"
+                size="small"
+                color="secondary"
+              />
+            </template>
+          </VaInput>
+        </VaValue>
+
+        <VaButton
+          type="submit"
+          class="submit-button"
+          gradient 
+        >
+          Cadastrar
+        </VaButton>
       </VaForm>
     </div>
   </div>
 </template>
 
+
 <style scoped>
-.flex {
+.login-container {
   display: flex;
-}
-
-.flex-col {
   flex-direction: column;
-}
-
-.items-center {
   align-items: center;
-}
-
-.justify-center {
   justify-content: center;
+  padding: 20px;
 }
 
-.relevo {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+.logo {
+  margin-bottom: 20px;
+}
+
+.logo-image {
+  max-width: 300px; 
+}
+
+.form-container {
+  width: 100%;
+  max-width: 400px; 
+  background-color: #FFF;
   padding: 20px;
-  border-radius: 8px; 
-  background-color: #FFF; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+.form-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #B50025;
+}
+.form-input {
+  margin-bottom: 15px;
+}
+.submit-button {
+  width: 100%;
+  margin-top: 20px; 
+}
+.divider {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem; 
+  margin-bottom: 1rem; 
 }
 .va-form {
   width: 100%;
