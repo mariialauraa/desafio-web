@@ -1,7 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import LoginView from '../views/LoginView.vue';
+import HomeView from '../views/HomeView.vue';
 import AuthService from '@/services/authService';
+import OrderView from '../views/OrderView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +16,14 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { 
+        requiresAuth: true, 
+      },
+    },
+    {
+      path: '/orders/:id',
+      name: 'order',
+      component: OrderView,
       meta: { 
         requiresAuth: true, 
       },

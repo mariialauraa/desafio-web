@@ -8,6 +8,7 @@
     <h1 style="color: #B50025;">
       <strong>Adicionar nova carga:</strong>
     </h1>
+
     <div style="margin-top: 20px;">
       <VaModal
         class="modal-crud"
@@ -58,6 +59,14 @@
             icon="delete"
             @click="() => promptDeleteLoad(row)"
           />
+      </template>
+
+      <template #cell(orders)="{ row }">
+        <VaButton
+          preset="plain"
+          icon="list"
+          @click="viewLists(row)"
+        />
       </template>
     </VaDataTable>
 
@@ -110,12 +119,15 @@ import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useAlertStore } from '@/stores/alertStore';
 import { VaPagination } from 'vuestic-ui';
+import { useRouter } from 'vue-router';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
 
 const $store = useAlertStore();
+
+const router = useRouter();
 
 const loadsPerPage = 10; 
 const currentPage = ref(1);
@@ -127,6 +139,7 @@ const columns = ref([
   { key: "code", label: "código", sortable: true },
   { key: "delivery_date", label: "data de entrega", sortable: true },
   { key: "actions", label: "ações", width: 80 },
+  { key: "orders", label: "listas", width: 80 },
 ]);
 
 const newLoad = reactive({
@@ -276,6 +289,15 @@ const openModalToEditLoad = (row) => {
     editedLoad.value = { ...row.itemKey };
   } else {
     console.error('Objeto ou ID indefinido:', row);
+  }
+};
+
+const viewLists = (row) => {
+  if (row && row.itemKey && row.itemKey.id) {
+    const loadId = row.itemKey.id;
+    router.push({ name: 'order', params: { id: loadId } });
+  } else {
+    console.error('ID de carga não encontrado:', row);
   }
 };
 

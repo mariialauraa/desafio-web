@@ -17,21 +17,21 @@
           </VaNavbarItem>
         </template>
 
-        <template #center>
-          <VaNavbarItem class="font-bold text-lg" style="color: #B50025;">
-            <strong>Bem-vindo, {{ userName }}!</strong>
-          </VaNavbarItem>
-        </template>
-
         <template #right>
-          <VaButton 
-            @click="logout" 
-            size="large" preset="primary" 
-            style="margin-left: auto;"
-          >
-            <VaIcon name="logout"/>
-            <span>Sair</span>
-          </VaButton>
+          <div class="user-info">
+            <VaNavbarItem class="font-bold text-lg user-name">
+              <strong>Bem-vindo {{ userName }}!</strong>
+            </VaNavbarItem>
+            <VaButton 
+              @click="logout" 
+              size="large" 
+              preset="primary" 
+              style="margin-left: auto;"
+            >
+              <VaIcon name="logout"/>
+              <span>Sair</span>
+            </VaButton>
+          </div>  
         </template>        
       </VaNavbar>
     </template>
@@ -136,6 +136,15 @@ const menu = [
 </script>
 
 <style>
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.user-info .user-name {
+  color: #B50025;
+  margin-right: 10px;
+}
 .page-transition {
   transition: opacity 0.5s ease;
   opacity: 1;
