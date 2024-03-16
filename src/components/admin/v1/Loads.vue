@@ -65,7 +65,7 @@
         <VaButton
           preset="plain"
           icon="list"
-          @click="viewLists(row)"
+          @click="viewOrders(row)"
         />
       </template>
     </VaDataTable>
@@ -292,10 +292,10 @@ const openModalToEditLoad = (row) => {
   }
 };
 
-const viewLists = (row) => {
+const viewOrders = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     const loadId = row.itemKey.id;
-    router.push({ name: 'order', params: { id: loadId } });
+    router.push({ name: 'order', query: { load_id: loadId } });
   } else {
     console.error('ID de carga não encontrado:', row);
   }
