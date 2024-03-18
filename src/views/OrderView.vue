@@ -102,11 +102,18 @@
         class="my-pagination justify-center"
       />
     </div>
+
+    <div class="return-button-container">
+      <router-link to="/" class="va-button">
+        Retornar
+      </router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useAlertStore } from '@/stores/alertStore';
 import { VaPagination } from 'vuestic-ui';
@@ -116,6 +123,9 @@ const api = axios.create({
 });
 
 const $store = useAlertStore();
+
+const route = useRoute();
+const loadId = ref(null);
 
 const ordersPerPage = 10; 
 const currentPage = ref(1);
@@ -154,40 +164,42 @@ const promptDeleteOrder = (row) => {
 
 const fetchData = async (loadId) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token'); 
     const response = await api.get
-      (`/admin/v1/orders?page=${currentPage.value}&limit=${ordersPerPage}&load_id=${loadId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      (`/admin/v1/orders?page=${currentPage.value}&limit=${ordersPerPage.value}&load_id=${loadId}`, {
+      headers: { Authorization: `Bearer ${token}` } 
     });
-    orders.value = response.data.orders;
+    orders.value = response.data.orders; 
     if (response.data.meta) {
-      totalPages.value = response.data.meta.total_pages;
+      totalPages.value = response.data.meta.total_pages; 
     } else {
       console.error('Dados de paginação não encontrados na resposta da API');
     }
   } catch (error) {
-    console.error('Erro ao obter listas', error);
+    console.error('Erro ao obter listas:', error);
   }
 };
 
 const createOrder = async () => {
-  if (!newOrder.code || !newOrder.bay) {
+  if (!newOrder.code || !newOrder.bay || !loadId.value) {
     $store.setAlert('Por favor, preencha todos os campos.', 'error');
     return;
   }
 
   try {
     const token = localStorage.getItem('token');
-    const response = await api.post('/admin/v1/orders', {
-      code: newOrder.code, 
-      bay: newOrder.bay 
+    const response = await api.post(`/admin/v1/orders?load_id=${loadId.value}`, {
+      order: {
+        code: newOrder.code, 
+        bay: newOrder.bay
+      }
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (response.status === 200) {           
+    if (response.status === 200) {
       resetEditedOrder();
-      fetchData(currentPage.value);
+      fetchData(loadId.value);
       $store.setAlert('Lista criada com sucesso.', 'success');
     }
   } catch (error) {
@@ -246,23 +258,19 @@ const openModalToEditOrder = (row) => {
 };
 
 onMounted(() => {
-  // Verifica se há um parâmetro load_id na URL
-  const params = new URLSearchParams(window.location.search);
-  const loadId = params.get('load_id');
-  if (loadId) {
-    fetchData(loadId);
-  } else {
-    fetchData();
+  loadId.value = route.query.load_id; 
+  if (loadId.value) {
+    fetchData(loadId.value); 
   }
 });
 
 const changePage = (newPage) => {
   currentPage.value = newPage;
-  fetchData();
+  fetchData(loadId.value);
 };
 
 watch(currentPage, (newVal) => {
-  fetchData(newVal);
+  fetchData(loadId.value, newVal);
 });
 </script>
 
@@ -307,5 +315,8 @@ watch(currentPage, (newVal) => {
 
 .alert.error {
   background-color: #f44336; 
+}
+.va-button {
+  color: #B71C1C;
 }
 </style>
