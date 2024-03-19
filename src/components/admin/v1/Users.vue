@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-left: 20px; margin-right: 20px;">
+  <div class="container">
 
     <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
       {{ $store.alert.message }}
@@ -298,6 +298,14 @@ watch(currentPage, (newVal) => {
     display: block;
   }
 }
+
+.container {
+  max-height: 100vh; 
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
 .alert {
   position: absolute; 
   right: 5px;

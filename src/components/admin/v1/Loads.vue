@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
+  <div class="container">
 
     <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
       {{ $store.alert.message }}
@@ -167,7 +167,7 @@ const promptDeleteLoad = (row) => {
 
 const formatDate = (dateString) => {
   const [year, month, day] = dateString.split('-');
-  return `${day}/${month}/${year}`;
+  return `${day}-${month}-${year}`;
 };
 
 const fetchData = async () => {
@@ -334,6 +334,13 @@ watch(currentPage, (newVal) => {
   .va-input {
     display: block;
   }
+}
+
+.container {
+  max-height: 100vh; 
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 
 .date-field {

@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
+  <div class="container">
 
     <div v-if="$store.alert.message" :class="['alert', $store.alert.type]">
       {{ $store.alert.message }}
@@ -59,6 +59,16 @@
             @click="() => promptDeleteOrder(row)"
           />
       </template>
+
+      <template #cell(order_products)="{ row }">
+        <div class="center-cell">
+          <VaButton
+            preset="plain"
+            icon="list"
+            @click="viewOrderProducts(row)"
+          />
+        </div>
+      </template>
     </VaDataTable>
 
     <VaModal
@@ -104,7 +114,7 @@
     </div>
 
     <div class="return-button-container">
-      <router-link to="/" class="va-button">
+      <router-link to="/loads" class="va-button">
         Retornar
       </router-link>
     </div>
@@ -137,6 +147,7 @@ const columns = ref([
   { key: "code", label: "código", sortable: true },
   { key: "bay", label: "baia", sortable: true },
   { key: "actions", label: "ações", width: 80 },
+  { key: "order_products", label: "produtos da lista", width: 80 },
 ]);
 
 const newOrder = reactive({
@@ -295,6 +306,12 @@ watch(currentPage, (newVal) => {
   }
 }
 
+.container {
+  max-height: 100vh; 
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
 .alert {
   position: absolute; 
   right: 5px;
@@ -318,5 +335,12 @@ watch(currentPage, (newVal) => {
 }
 .va-button {
   color: #B71C1C;
+}
+
+.center-cell {
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  height: 100%; 
 }
 </style>
