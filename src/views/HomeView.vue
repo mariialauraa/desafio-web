@@ -47,8 +47,7 @@
         <VaSidebarItem 
           v-for="(item, index) in menu" 
           :key="index" 
-          :active="isActive(item.title)" 
-          @click="setActive(item.title)" 
+          :to="item.to"
           active-color="canvaB"
         >
           <VaSidebarItemContent>
@@ -63,18 +62,7 @@
 
     <template #content>
       <main>
-        <div class="page-transition" v-show="page === 1">
-          <Dashboard />
-        </div>
-        <div class="page-transition" v-show="page === 2">
-          <Loads />
-        </div>
-        <div class="page-transition" v-show="page === 3">
-          <Products />
-        </div>
-        <div class="page-transition" v-show="page === 4">
-          <Users />
-        </div>
+        <router-view></router-view>
       </main>
     </template>
   </VaLayout>
@@ -83,32 +71,12 @@
 <script setup>
 import { ref, watchEffect } from 'vue';
 import { useBreakpoint } from 'vuestic-ui';
-import Dashboard from '@/components/Dashboard.vue';
-import Products from '@/components/admin/v1/Products.vue';
-import Users from '@/components/admin/v1/Users.vue';
-import Loads from '@/components/admin/v1/Loads.vue';
 import AuthService from '@/services/authService';
 import router from '@/router';
 
 const userName = ref('Convidado');
 const breakpoints = useBreakpoint();
 const isSidebarVisible = ref(breakpoints.smUp);
-const page = ref(1);
-const activeItem = ref('Home');
-
-// Determina se um item está ativo com base no título do item
-function isActive(item) {
-  return item === activeItem.value;
-}
-
-// Define o item ativo e muda a página com base na ação do item
-function setActive(item) {
-  activeItem.value = item;
-  const menuItem = menu.find(menuItem => menuItem.title === item);
-  if (menuItem) {
-    menuItem.action();
-  }
-}
 
 // Atualiza o nome do usuário e a visibilidade da barra lateral
 watchEffect(() => {
@@ -127,10 +95,10 @@ const logout = async () => {
 };
 
 const menu = [
-  { icon: 'home', title: 'Home', action: () => page.value = 1 },
-  { icon: 'local_shipping', title: 'Cargas', action: () => page.value = 2 },
-  { icon: 'inventory', title: 'Produtos', action: () => page.value = 3 },
-  { icon: 'person', title: 'Usuários', action: () => page.value = 4 },
+{ icon: 'home', title: 'Home', to: '/dashboard' }, 
+  { icon: 'local_shipping', title: 'Cargas', to: '/loads' },
+  { icon: 'inventory', title: 'Produtos', to: '/products' },
+  { icon: 'person', title: 'Usuários', to: '/users' },
   { icon: 'logout', title: 'Sair', action: logout },
 ];
 </script>
@@ -144,12 +112,5 @@ const menu = [
 .user-info .user-name {
   color: #B50025;
   margin-right: 10px;
-}
-.page-transition {
-  transition: opacity 0.5s ease;
-  opacity: 1;
-}
-.page-transition.leave-active {
-  opacity: 0;
 }
 </style>
