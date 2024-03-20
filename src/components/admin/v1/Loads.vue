@@ -295,7 +295,7 @@ const openModalToEditLoad = (row) => {
 const viewOrders = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     const loadId = row.itemKey.id;
-    router.push({ name: 'order', query: { load_id: loadId } });
+    router.push({ name: 'orders', query: { load_id: loadId } });
   } else {
     console.error('ID de carga não encontrado:', row);
   }

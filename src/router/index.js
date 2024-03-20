@@ -2,12 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import HomeView from '../views/HomeView.vue';
 import AuthService from '@/services/authService';
-import OrderView from '../views/OrderView.vue';
 
 import Dashboard from '@/components/Dashboard.vue';
 import Loads from '@/components/admin/v1/Loads.vue';
 import Products from '@/components/admin/v1/Products.vue';
 import Users from '@/components/admin/v1/Users.vue';
+import Orders from '@/components/admin/v1/Orders.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,16 +51,16 @@ const router = createRouter({
           name: 'users',
           component: Users,
           meta: { requiresAuth: true },
-        }
+        },
+        {
+        path: '/orders',
+        name: 'orders',
+        component: Orders,
+        meta: { 
+          requiresAuth: true, 
+        },
+      }
       ]
-    },
-    {
-      path: '/orders',
-      name: 'order',
-      component: OrderView,
-      meta: { 
-        requiresAuth: true, 
-      },
     },
     {
       path: '/about',
