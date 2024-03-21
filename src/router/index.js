@@ -8,6 +8,7 @@ import Loads from '@/components/admin/v1/Loads.vue';
 import Products from '@/components/admin/v1/Products.vue';
 import Users from '@/components/admin/v1/Users.vue';
 import Orders from '@/components/admin/v1/Orders.vue';
+import OrderProducts from '@/components/admin/v1/OrderProducts.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +57,14 @@ const router = createRouter({
         path: '/orders',
         name: 'orders',
         component: Orders,
+        meta: { 
+          requiresAuth: true, 
+        },
+      },
+      {
+        path: '/order_products',
+        name: 'order_products',
+        component: OrderProducts,
         meta: { 
           requiresAuth: true, 
         },

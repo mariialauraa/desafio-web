@@ -127,12 +127,15 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useAlertStore } from '@/stores/alertStore';
 import { VaPagination } from 'vuestic-ui';
+import { useRouter } from 'vue-router';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/'
 });
 
 const $store = useAlertStore();
+
+const router = useRouter();
 
 const route = useRoute();
 const loadId = ref(null);
@@ -265,6 +268,15 @@ const openModalToEditOrder = (row) => {
     editedOrder.value = { ...row.itemKey };
   } else {
     console.error('Objeto ou ID indefinido:', row);
+  }
+};
+
+const viewOrderProducts = (row) => {
+  if (row && row.itemKey && row.itemKey.id) {
+    const orderId = row.itemKey.id;
+    router.push({ name: 'order_products', query: { order_id: orderId } });
+  } else {
+    console.error('ID da lista não encontrado:', row);
   }
 };
 
