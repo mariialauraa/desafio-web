@@ -96,6 +96,7 @@
       @ok="confirmDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
+      size="small"
       stateful
     >
       <h3 class="va-h3">Confirmação</h3>
@@ -114,9 +115,13 @@
     </div>
 
     <div class="return-button-container">
-      <router-link to="/loads" class="va-button">
-        Retornar
-      </router-link>
+      <VaButton 
+        preset="primary"
+        class="mr-6 mb-2 mt-2"
+        @click="goBack"
+      >
+        Voltar
+      </VaButton>
     </div>
   </div>
 </template>
@@ -136,6 +141,10 @@ const api = axios.create({
 const $store = useAlertStore();
 
 const router = useRouter();
+
+const goBack = () => {
+  router.go(-1); 
+};
 
 const route = useRoute();
 const loadId = ref(null);

@@ -95,6 +95,7 @@
       @ok="confirmDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
+      size="small"
       stateful
       class="va-modal-md"
     >

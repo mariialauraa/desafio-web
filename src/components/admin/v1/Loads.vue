@@ -95,6 +95,7 @@
       @ok="confirmDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
+      size="small"
       stateful
     >
       <h3 class="va-h3">Confirmação</h3>

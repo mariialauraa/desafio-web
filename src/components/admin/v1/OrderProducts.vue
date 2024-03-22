@@ -54,6 +54,10 @@
       :columns="columns" 
       striped
     >
+      <template #cell(box)="{ row }">
+        <div>{{ formatBox(row.itemKey.box) }}</div>
+      </template>
+
       <template #cell(actions)="{ row }">
           <VaButton 
             v-if="row"
@@ -102,6 +106,7 @@
       @ok="confirmDeletion"
       ok-text="Deletar"
       cancel-text="Cancelar"
+      size="small"
       stateful
     >
       <h3 class="va-h3">Confirmação</h3>
@@ -109,10 +114,13 @@
     </VaModal>
 
     <div class="return-button-container">
-      <a @click="goBack" class="va-button">
-        <br/>
-        Retornar
-      </a>
+      <VaButton 
+        preset="primary"
+        class="mr-6 mb-2 mt-4"
+        @click="goBack"
+      >
+        Voltar
+      </VaButton>
     </div>
   </div>
 </template>
@@ -156,8 +164,12 @@ const newOrderProduct = reactive({
 
 const boxOptions = [
   { label: 'caixa', value: true },
-  { label: 'und', value: false },
+  { label: 'und.', value: false },
 ];
+
+const formatBox = (value) => {
+  return value ? 'Sim' : 'Não';
+}
 
 const editedOrderProductId = ref(null);
 const editedOrderProduct = ref(null);
@@ -223,7 +235,6 @@ const createOrderProduct = async () => {
     $store.setAlert('Erro ao criar produto da lista', 'error');
   }
 };
-
 
 const confirmDeletion = async () => {
   if (order_productToDelete.value) {
