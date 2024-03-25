@@ -25,12 +25,13 @@
         class="my-6" 
       />
 
-      <va-input 
-        v-model="newOrderProduct.quantity" 
-        label="Quantidade" 
-        placeholder="Digite a quantidade"
-        class="ml-2 mr-2"
-      />
+        <VaCounter
+          v-model="newOrderProduct.quantity"
+          manual-input
+          label="Quantidade"
+          :min="0"
+          :max="999"
+        />
 
       <VaButtonToggle
         v-model="newOrderProduct.box"
@@ -86,19 +87,24 @@
         class="my-6" 
         label="ID do produto" 
       />
-      <VaInput 
-        v-model="editedOrderProduct.quantity" 
-        class="my-6" 
-        label="Quantidade" 
-        style="margin-top: 20px;" 
-      />
-      <VaButtonToggle
-        v-model="editedOrderProduct.box"
-        preset="secondary"
-        border-color="primary"
-        :options="boxOptions"
-        style="margin-top: 20px;" 
-      />
+
+      <div class="flex-row my-6">
+        <VaCounter
+          v-model="editedOrderProduct.quantity"
+          manual-input
+          label="Quantidade"
+          :min="0"
+          :max="999"
+          style="margin-top: 20px;" 
+        />
+        <VaButtonToggle
+          v-model="editedOrderProduct.box"
+          preset="secondary"
+          border-color="primary"
+          :options="boxOptions"
+          style="margin-top: 38px;" 
+        />
+      </div>
     </VaModal>
 
     <VaModal
@@ -151,6 +157,7 @@ const order_products = ref([]);
 const columns = ref([
   { key: "id", label: "id", sortable: true },
   { key: "product_id", label: "ID do produto", sortable: true },
+  { key: "product_name", label: "Nome do produto", sortable: true },
   { key: "quantity", label: "quantidade", sortable: true },
   { key: "box", label: "caixa", sortable: true },
   { key: "actions", label: "ações", width: 80 },
@@ -192,11 +199,17 @@ const promptDeleteOrderProduct = (row) => {
 
 const fetchData = async (orderId) => {
   try {
-    const token = localStorage.getItem('token'); 
+    const token = localStorage.getItem('token');
     const response = await api.get(`/admin/v1/order_products?order_id=${orderId}`, {
-      headers: { Authorization: `Bearer ${token}` } 
+      headers: { Authorization: `Bearer ${token}` }
     });
-    order_products.value = response.data.order_products; 
+    // Mapeia os dados para adicionar ao nível superior
+    const orderProductsWithName = response.data.map(order_product => ({
+      ...order_product,
+      product_id: order_product.product.id,
+      product_name: order_product.product.name
+    }));
+    order_products.value = orderProductsWithName;
   } catch (error) {
     console.error('Erro ao obter produtos da lista:', error);
   }
@@ -357,5 +370,11 @@ onMounted(() => {
   justify-content: center; 
   align-items: center; 
   height: 100%; 
+}
+
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>
