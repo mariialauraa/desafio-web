@@ -21,7 +21,7 @@
       <va-input 
         v-model="newOrderProduct.product_id" 
         label="ID do produto" 
-        placeholder="Digite id do produto"
+        placeholder="Digite o ID do Produto"
         class="my-6" 
       />
 
@@ -29,7 +29,7 @@
           v-model="newOrderProduct.quantity"
           manual-input
           label="Quantidade"
-          :min="0"
+          :min="1"
           :max="999"
         />
 
@@ -55,8 +55,12 @@
       :columns="columns" 
       striped
     >
+      <template #cell(quantity)="{ value }">
+        <strong>{{ String(value).padStart(2, '0') }}</strong>
+      </template>
+      
       <template #cell(box)="{ row }">
-        <div>{{ formatBox(row.itemKey.box) }}</div>
+        <VaCheckbox :readonly="true" v-model="row.itemKey.box"></VaCheckbox>
       </template>
 
       <template #cell(actions)="{ row }">
@@ -93,7 +97,7 @@
           v-model="editedOrderProduct.quantity"
           manual-input
           label="Quantidade"
-          :min="0"
+          :min="1"
           :max="999"
           style="margin-top: 20px;" 
         />
@@ -124,6 +128,7 @@
         preset="primary"
         class="mr-6 mb-2 mt-4"
         @click="goBack"
+        size="large"
       >
         Voltar
       </VaButton>
@@ -155,10 +160,9 @@ const orderId = ref(null);
 
 const order_products = ref([]);
 const columns = ref([
-  { key: "id", label: "id", sortable: true },
-  { key: "product_id", label: "ID do produto", sortable: true },
+  { key: "product_id", label: "ID do produto", sortable: false },
   { key: "product_name", label: "Nome do produto", sortable: true },
-  { key: "quantity", label: "quantidade", sortable: true },
+  { key: "quantity", label: "quantidade", sortable: false },
   { key: "box", label: "caixa", sortable: true },
   { key: "actions", label: "ações", width: 80 },
 ]);
@@ -173,10 +177,6 @@ const boxOptions = [
   { label: 'caixa', value: true },
   { label: 'und.', value: false },
 ];
-
-const formatBox = (value) => {
-  return value ? 'Sim' : 'Não';
-}
 
 const editedOrderProductId = ref(null);
 const editedOrderProduct = ref(null);
@@ -245,7 +245,7 @@ const createOrderProduct = async () => {
         return;
       }
     }
-    $store.setAlert('Erro ao criar produto da lista', 'error');
+    $store.setAlert('Erro ao criar produto na lista.', 'error');
   }
 };
 
@@ -259,7 +259,7 @@ const confirmDeletion = async () => {
       order_products.value = order_products.value.filter
         (u => u.id !== order_productToDelete.value.itemKey.id);
       order_productToDelete.value = null; 
-      $store.setAlert('Produto da lista excluido com sucesso', 'success');
+      $store.setAlert('Produto excluido da lista com sucesso.', 'success');
     } catch (error) {
       $store.setAlert('Erro ao excluir produto da lista', 'error');
     }
@@ -279,10 +279,10 @@ const editOrderProduct = async () => {
       order_products.value = order_products.value.map(order_product => 
         (order_product.id === updatedOrderProduct.id ? updatedOrderProduct : order_product));
       resetEditedOrderProduct();
-      $store.setAlert('Produto da lista editado com sucesso', 'success');
+      $store.setAlert('Produto da lista editado com sucesso.', 'success');
     } 
   } catch (error) {
-    $store.setAlert('Erro ao editar produto da lista', 'error');
+    $store.setAlert('Erro ao editar produto da lista.', 'error');
   }
 };
 

@@ -119,6 +119,7 @@
         preset="primary"
         class="mr-6 mb-2 mt-2"
         @click="goBack"
+        size="large"
       >
         Voltar
       </VaButton>

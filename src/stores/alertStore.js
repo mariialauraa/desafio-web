@@ -15,7 +15,7 @@ export const useAlertStore = defineStore('alertStore', {
       setTimeout(() => {
         this.alert.message = '';
         this.alert.type = null;
-      }, 3000); 
+      }, 4000); 
     },
     clearMessages() {
       this.successMessage = '';
