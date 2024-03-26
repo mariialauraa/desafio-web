@@ -8,7 +8,7 @@
     <h1 style="color: #B50025;">
       <strong>Adicionar novo produto:</strong>
     </h1>
-    <div style="margin-top: 20px;">
+    <div class="add-product-section">
       <VaModal
         class="modal-crud"
         :model-value="!!editedProduct"
@@ -38,6 +38,8 @@
       >
         Adicionar
       </va-button>
+
+      <search @search="onSearch" />
     </div>
 
     <VaDataTable
@@ -109,6 +111,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
+import Search from '@/components/admin/v1/Search.vue'
 import { useAlertStore } from '@/stores/alertStore';
 import { VaPagination } from 'vuestic-ui';
 
@@ -121,8 +124,15 @@ const $store = useAlertStore();
 const productsPerPage = 10; 
 const currentPage = ref(1);
 const totalPages = ref(0);
-
+const searchQuery = ref('');
 const products = ref([]);
+
+const onSearch = (query) => {
+  searchQuery.value = query; 
+  currentPage.value = 1; 
+  fetchData(); 
+};
+
 const columns = ref([
   { key: "id", label: "id", sortable: true },
   { key: "name", label: "produto", sortable: true },
@@ -156,12 +166,15 @@ const promptDeleteProduct = (row) => {
 const fetchData = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get(`/admin/v1/products?page=${currentPage.value}&limit=${productsPerPage}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get(
+      `/admin/v1/products?page=${currentPage.value}&limit=${productsPerPage}` +
+      `${searchQuery.value ? `&search[name]=${encodeURIComponent(searchQuery.value)}` : ''}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
     products.value = response.data.products;
     if (response.data.meta) {
-      totalPages.value = response.data.meta.total_pages;
+      totalPages.value = response.data.meta ? response.data.meta.total_pages : 0;
     } else {
       console.error('Dados de paginação não encontrados na resposta da API');
     }
@@ -245,18 +258,16 @@ const openModalToEditProduct = (row) => {
   }
 };
 
-onMounted(() => {
-  fetchData(currentPage.value);
+onMounted(fetchData);
+
+watch(currentPage, () => {
+  fetchData(); 
 });
 
 const changePage = (newPage) => {
   currentPage.value = newPage;
-  fetchData(newPage);
+  fetchData();
 };
-
-watch(currentPage, (newVal) => {
-  fetchData(newVal);
-});
 </script>
 
 <style lang="scss" scoped>
@@ -286,6 +297,15 @@ watch(currentPage, (newVal) => {
   margin-left: 20px;
   margin-right: 20px;
 }
+
+.add-product-section {
+  display: flex;
+  align-items: center; 
+  justify-content: start; 
+  gap: 10px;
+  margin-top: 20px;
+  margin-left: -10px;
+} 
 
 .alert {
   position: absolute; 

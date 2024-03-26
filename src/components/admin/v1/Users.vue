@@ -9,7 +9,7 @@
       <strong>Adicionar novo usuário:</strong>
     </h1>
 
-    <div style="margin-top: 20px;">
+    <div class="add-user-section">
       <VaModal
         class="modal-crud"
         :model-value="!!editedUser"
@@ -47,6 +47,8 @@
       >
         Adicionar
       </va-button>
+
+      <search @search="onSearch" />
     </div>
 
     <VaDataTable
@@ -119,6 +121,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
+import Search from '@/components/admin/v1/Search.vue'
 import { useAlertStore } from '@/stores/alertStore';
 import { VaPagination } from 'vuestic-ui';
 
@@ -131,8 +134,15 @@ const $store = useAlertStore();
 const usersPerPage = 10; 
 const currentPage = ref(1);
 const totalPages = ref(0);
-
+const searchQuery = ref('');
 const users = ref([]);
+
+const onSearch = (query) => {
+  searchQuery.value = query; 
+  currentPage.value = 1; 
+  fetchData(); 
+};
+
 const columns = ref([
   { key: "id", label: "id", sortable: true },
   { key: "name", label: "nome", sortable: true },
@@ -165,15 +175,18 @@ const promptDeleteUser = (row) => {
   deleteConfirmationModal.value.show();
 };
 
-const fetchData = async (page = 1) => {
+const fetchData = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get(`/admin/v1/users?page=${page}&limit=${usersPerPage}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get(
+      `/admin/v1/users?page=${currentPage.value}&limit=${usersPerPage}` + 
+      `${searchQuery.value ? `&search[name]=${encodeURIComponent(searchQuery.value)}` : ''}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
     users.value = response.data.users;
     if (response.data.meta) {
-      totalPages.value = response.data.meta.total_pages;
+      totalPages.value = response.data.meta ? response.data.meta.total_pages : 0;
     } else {
       console.error('Dados de paginação não encontrados na resposta da API');
     }
@@ -265,18 +278,16 @@ const openModalToEditUser = (row) => {
   }
 };
 
-onMounted(() => {
-  fetchData(currentPage.value);
+onMounted(fetchData);
+
+watch(currentPage, () => {
+  fetchData(); 
 });
 
 const changePage = (newPage) => {
   currentPage.value = newPage;
-  fetchData(newPage);
+  fetchData();
 };
-
-watch(currentPage, (newVal) => {
-  fetchData(newVal);
-});
 </script>
 
 <style lang="scss" scoped>
@@ -306,6 +317,15 @@ watch(currentPage, (newVal) => {
   margin-left: 20px;
   margin-right: 20px;
 }
+
+.add-user-section {
+  display: flex;
+  align-items: center; 
+  justify-content: start; 
+  gap: 10px;
+  margin-top: 20px;
+  margin-left: -10px;
+} 
 
 .alert {
   position: absolute; 
