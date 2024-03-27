@@ -6,7 +6,7 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Adicionar novo produto:</strong>
+      <strong>Adicionar novo Produto:</strong>
     </h1>
     <div class="add-product-section">
       <VaModal
@@ -304,6 +304,7 @@ const changePage = (newPage) => {
   justify-content: start; 
   gap: 10px;
   margin-top: 20px;
+  margin-bottom: 20px;
   margin-left: -10px;
 } 
 

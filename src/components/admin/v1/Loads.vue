@@ -6,10 +6,10 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Adicionar nova carga:</strong>
+      <strong>Adicionar nova Carga:</strong>
     </h1>
 
-    <div style="margin-top: 20px;">
+    <div class="menu-add">
       <VaModal
         class="modal-crud"
         :model-value="!!editedLoad"
@@ -342,6 +342,13 @@ watch(currentPage, (newVal) => {
   margin-top: 20px;
   margin-left: 20px;
   margin-right: 20px;
+}
+
+.menu-add {
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .date-field {

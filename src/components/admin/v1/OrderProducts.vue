@@ -6,7 +6,7 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Adicionar novo produto a lista:</strong>
+      <strong>Adicionar Produto a Lista:</strong>
     </h1>
     <div class="menu-add">
       <VaModal
@@ -18,19 +18,27 @@
         @cancel="resetEditedOrderProduct"
       />
 
-      <va-input 
-        v-model="newOrderProduct.product_id" 
-        label="ID do produto" 
-        placeholder="Digite o ID do Produto"
-        class="my-6" 
-      />
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <select 
+          v-model="newOrderProduct.product_id"
+          class="product-select" 
+        >
+          <option disabled value="">Selecione um produto</option>
+          <option 
+            v-for="produto in allProducts" 
+            :key="produto.value" 
+            :value="produto.value">
+            {{ produto.label }}
+          </option>
+        </select>
+      </div>
 
         <VaCounter
           v-model="newOrderProduct.quantity"
           manual-input
-          label="Quantidade"
           :min="1"
           :max="999"
+          style="margin-top: 18px;" 
         />
 
       <VaButtonToggle
@@ -157,8 +165,9 @@ const goBack = () => {
 
 const route = useRoute();
 const orderId = ref(null);
-
 const order_products = ref([]);
+const allProducts = ref([]);
+
 const columns = ref([
   { key: "product_id", label: "ID do produto", sortable: false },
   { key: "product_name", label: "Nome do produto", sortable: true },
@@ -169,7 +178,7 @@ const columns = ref([
 
 const newOrderProduct = reactive({
   product_id: '',
-  quantity: '',
+  quantity: 1,
   box: false
 });
 
@@ -183,7 +192,7 @@ const editedOrderProduct = ref(null);
 
 const resetEditedOrderProduct = () => {
   newOrderProduct.product_id = '';
-  newOrderProduct.quantity = '';
+  newOrderProduct.quantity = 1;
   newOrderProduct.box = false;
   editedOrderProduct.value = null;
   editedOrderProductId.value = null;
@@ -195,6 +204,35 @@ const order_productToDelete = ref(null);
 const promptDeleteOrderProduct = (row) => {
   order_productToDelete.value = row; 
   deleteConfirmationModal.value.show(); 
+};
+
+const fetchAllProducts = async () => {
+  try {
+    const allProductsTemp = [];
+    let page = 1;
+
+    while (true) { 
+      const token = localStorage.getItem('token');
+      const response = await api.get(`/admin/v1/products?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const products = response.data.products;
+      if (products && products.length > 0) {
+        allProductsTemp.push(...products.map(product => ({
+          label: product.name,
+          value: product.id
+        })));
+        page += 1; 
+      } else {
+        break; 
+      }
+    }
+
+    allProducts.value = allProductsTemp; 
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
+  }
 };
 
 const fetchData = async (orderId) => {
@@ -235,7 +273,7 @@ const createOrderProduct = async () => {
     if (response.status === 200) {
       resetEditedOrderProduct();
       fetchData(orderId.value);
-      $store.setAlert('Produto criado com sucesso.', 'success');
+      $store.setAlert('Produto adicionado com sucesso.', 'success');
     }
   } catch (error) {
     if (error.response && error.response.status === 422) {
@@ -296,6 +334,8 @@ const openModalToEditOrderProduct = (row) => {
 };
 
 onMounted(() => {
+  fetchAllProducts();
+
   orderId.value = route.query.order_id; 
   if (orderId.value) {
     fetchData(orderId.value); 
@@ -335,7 +375,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
   margin-bottom: 20px;
   margin-left: -10px;
 }
@@ -376,5 +415,23 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.product-select {
+  width: 100%;
+  height: 36px; 
+  padding: 5px; 
+  border-style: solid;
+  border-color: var(--va-input-wrapper-border-color);
+  border-radius: 5px;
+  background-color: transparent;
+  font-size: var(--va-input-font-size);
+  font-family: inherit; 
+  align-self: stretch;
+  margin-top: 1rem;
+}
+
+.product-select:hover {
+  border-color: #B71C1C; 
 }
 </style>

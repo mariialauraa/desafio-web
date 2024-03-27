@@ -6,7 +6,7 @@
     </div>
 
     <h1 style="color: #B50025; margin-top: 20px;">
-      <strong>Adicionar novo usuário:</strong>
+      <strong>Adicionar novo Usuário:</strong>
     </h1>
 
     <div class="add-user-section">
@@ -324,6 +324,7 @@ const changePage = (newPage) => {
   justify-content: start; 
   gap: 10px;
   margin-top: 20px;
+  margin-bottom: 20px;
   margin-left: -10px;
 } 
 

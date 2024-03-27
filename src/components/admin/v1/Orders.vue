@@ -6,9 +6,9 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Criar nova lista:</strong>
+      <strong>Criar nova Lista:</strong>
     </h1>
-    <div style="margin-top: 20px;">
+    <div class="menu-add">
       <VaModal
         class="modal-crud"
         :model-value="!!editedOrder"
@@ -157,7 +157,7 @@ const totalPages = ref(0);
 const orders = ref([]);
 const columns = ref([
   { key: "id", label: "id", sortable: true },
-  { key: "code", label: "código", sortable: true },
+  { key: "code", label: "código da lista", sortable: true },
   { key: "bay", label: "baia", sortable: true },
   { key: "actions", label: "ações", width: 80 },
   { key: "order_products", label: "produtos da lista", width: 80 },
@@ -333,6 +333,15 @@ watch(currentPage, (newVal) => {
   margin-left: 20px;
   margin-right: 20px;
   margin-top: 20px;
+}
+
+.menu-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: -10px;
 }
 
 .alert {
