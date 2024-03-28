@@ -19,26 +19,23 @@
       />
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <select 
+        <va-select
           v-model="newOrderProduct.product_id"
-          class="product-select" 
-        >
-          <option disabled value="">Selecione um produto</option>
-          <option 
-            v-for="produto in allProducts" 
-            :key="produto.value" 
-            :value="produto.value">
-            {{ produto.label }}
-          </option>
-        </select>
+          :options="allProducts"
+          label="Produto" 
+          placeholder="Selecione um produto"         
+          track-by="value"
+          text-by="label"
+          searchable
+        />
       </div>
 
         <VaCounter
           v-model="newOrderProduct.quantity"
           manual-input
+          label="Quantidade"
           :min="1"
           :max="999"
-          style="margin-top: 18px;" 
         />
 
       <VaButtonToggle
@@ -61,6 +58,10 @@
       class="table-crud" 
       :items="order_products" 
       :columns="columns" 
+      :wrapper-size="460"
+      :item-size="46"
+      virtual-scroller
+      sticky-header
       striped
     >
       <template #cell(quantity)="{ value }">
@@ -249,7 +250,11 @@ const fetchData = async (orderId) => {
     }));
     order_products.value = orderProductsWithName;
   } catch (error) {
-    console.error('Erro ao obter produtos da lista:', error);
+    if (error.response && error.response.status === 404) {
+      order_products.value = [];
+    } else {
+      console.error('Erro ao obter produtos da lista:', error);
+    }
   }
 };
 
@@ -260,12 +265,13 @@ const createOrderProduct = async () => {
   }
   try {
     const token = localStorage.getItem('token');
+    const payload = {
+      product_id: newOrderProduct.product_id.value,
+      quantity: newOrderProduct.quantity,
+      box: newOrderProduct.box
+    };
     const response = await api.post(`/admin/v1/order_products?order_id=${orderId.value}`, {
-      order_product: {
-        product_id: newOrderProduct.product_id, 
-        quantity: newOrderProduct.quantity, 
-        box: newOrderProduct.box
-      }
+      order_product: payload
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -375,6 +381,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-top: 20px;
   margin-bottom: 20px;
   margin-left: -10px;
 }
@@ -415,23 +422,5 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.product-select {
-  width: 100%;
-  height: 36px; 
-  padding: 5px; 
-  border-style: solid;
-  border-color: var(--va-input-wrapper-border-color);
-  border-radius: 5px;
-  background-color: transparent;
-  font-size: var(--va-input-font-size);
-  font-family: inherit; 
-  align-self: stretch;
-  margin-top: 1rem;
-}
-
-.product-select:hover {
-  border-color: #B71C1C; 
 }
 </style>

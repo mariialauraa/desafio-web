@@ -88,7 +88,8 @@
       <VaInput 
         v-model="editedUser.login" 
         class="my-6" 
-        label="Email" 
+        label="Email"
+        style="margin-top: 10px;"  
       />
     </VaModal>
 

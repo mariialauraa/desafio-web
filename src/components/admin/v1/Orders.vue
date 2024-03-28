@@ -88,6 +88,7 @@
         v-model="editedOrder.bay" 
         class="my-6" 
         label="Baia" 
+        style="margin-top: 10px;" 
       />
     </VaModal>
 

@@ -80,6 +80,7 @@
         v-model="editedProduct.ballast" 
         class="my-6" 
         label="Lastro" 
+        style="margin-top: 10px;" 
       />
     </VaModal>
 
