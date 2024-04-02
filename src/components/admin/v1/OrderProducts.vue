@@ -95,10 +95,13 @@
       @ok="editOrderProduct"
       @cancel="resetEditedOrderProduct"
     >
-      <VaInput 
-        v-model="editedOrderProduct.product_id" 
-        class="my-6" 
-        label="ID do produto" 
+      <va-select
+        v-model="editedOrderProduct.product_id"
+        :options="allProducts"
+        label="Produto" 
+        placeholder="Selecione um produto"         
+        track-by="value"
+        text-by="label"
       />
 
       <div class="flex-row my-6">
@@ -313,15 +316,21 @@ const confirmDeletion = async () => {
 const editOrderProduct = async () => {
   try {
     const token = localStorage.getItem('token');
+    const payload = {
+      ...editedOrderProduct.value,
+      product_id: editedOrderProduct.value.product_id.value || editedOrderProduct.value.product_id,
+    };
     const response = await api.patch(`/admin/v1/order_products/${editedOrderProductId.value}`,
-      editedOrderProduct.value, {
+      payload, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     if (response.status === 200) {
       const updatedOrderProduct = response.data.order_product;
+      
       order_products.value = order_products.value.map(order_product => 
         (order_product.id === updatedOrderProduct.id ? updatedOrderProduct : order_product));
+      
       resetEditedOrderProduct();
       $store.setAlert('Produto da lista editado com sucesso.', 'success');
     } 
