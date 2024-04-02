@@ -6,7 +6,7 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Criar nova Lista:</strong>
+      <strong>Criar nova Lista para Carga {{ loadCode }}:</strong>
     </h1>
     <div class="menu-add">
       <VaModal
@@ -150,6 +150,7 @@ const goBack = () => {
 
 const route = useRoute();
 const loadId = ref(null);
+const loadCode = route.query.load_code;
 
 const ordersPerPage = 10; 
 const currentPage = ref(1);
@@ -285,7 +286,8 @@ const openModalToEditOrder = (row) => {
 const viewOrderProducts = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     const orderId = row.itemKey.id;
-    router.push({ name: 'order_products', query: { order_id: orderId } });
+    const orderCode = row.itemKey.code;
+    router.push({ name: 'order_products', query: { order_id: orderId, order_code: orderCode } });
   } else {
     console.error('ID da lista não encontrado:', row);
   }

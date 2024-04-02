@@ -232,8 +232,17 @@ const confirmDeletion = async () => {
   }
 };
 
+let originalProduct = {}; 
+
 const editProduct = async () => {
   try {
+    const isProductEdited = Object.keys(editedProduct.value).some(key => {
+      return editedProduct.value[key] !== originalProduct[key];
+    });    
+    if (!isProductEdited) {
+      $store.setAlert('Você precisa editar algo antes de salvar.', 'warning');
+      return;
+    }
     const token = localStorage.getItem('token');
     const response = await api.patch(`/admin/v1/products/${editedProductId.value}`, editedProduct.value, {
       headers: { Authorization: `Bearer ${token}` }
@@ -243,6 +252,7 @@ const editProduct = async () => {
       const updatedProduct = response.data.product;
       products.value = products.value.map(product => (product.id === updatedProduct.id ? updatedProduct : product));
       resetEditedProduct();
+      originalProduct = {}; 
       $store.setAlert('Produto editado com sucesso', 'success');
     } 
   } catch (error) {
@@ -250,10 +260,11 @@ const editProduct = async () => {
   }
 };
 
-const openModalToEditProduct = (row) => { 
+const openModalToEditProduct = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     editedProductId.value = row.itemKey.id;
     editedProduct.value = { ...row.itemKey };
+    originalProduct = { ...row.itemKey }; 
   } else {
     console.error('Objeto ou ID indefinido:', row);
   }

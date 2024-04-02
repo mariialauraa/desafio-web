@@ -6,7 +6,7 @@
     </div>
 
     <h1 style="color: #B50025;">
-      <strong>Adicionar Produto a Lista:</strong>
+      <strong>Adicionar Produto a Lista {{ orderCode }}:</strong>
     </h1>
     <div class="menu-add">
       <VaModal
@@ -69,7 +69,7 @@
       </template>
       
       <template #cell(box)="{ row }">
-        <VaCheckbox :readonly="true" v-model="row.itemKey.box"></VaCheckbox>
+        <div>{{ formatBox(row.itemKey.box) }}</div>
       </template>
 
       <template #cell(actions)="{ row }">
@@ -169,6 +169,7 @@ const goBack = () => {
 
 const route = useRoute();
 const orderId = ref(null);
+const orderCode = route.query.order_code;
 const order_products = ref([]);
 const allProducts = ref([]);
 
@@ -190,6 +191,10 @@ const boxOptions = [
   { label: 'caixa', value: true },
   { label: 'und.', value: false },
 ];
+
+const formatBox = (value) => {
+  return value ? 'Caixa' : 'Unidade';
+}
 
 const editedOrderProductId = ref(null);
 const editedOrderProduct = ref(null);

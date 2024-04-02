@@ -252,8 +252,17 @@ const confirmDeletion = async () => {
   }
 };
 
+let originalUser = {};
+
 const editUser = async () => {
-  try {
+  try {    
+    const isUserEdited = Object.keys(editedUser.value).some(key => {
+      return editedUser.value[key] !== originalUser[key];
+    });    
+    if (!isUserEdited) {
+      $store.setAlert('Você precisa editar algo antes de salvar.', 'warning');
+      return;
+    }
     const token = localStorage.getItem('token');
     const response = await api.patch(`/admin/v1/users/${editedUserId.value}`, editedUser.value, {
       headers: { Authorization: `Bearer ${token}` }
@@ -263,6 +272,7 @@ const editUser = async () => {
       const updatedUser = response.data.user;
       users.value = users.value.map(user => (user.id === updatedUser.id ? updatedUser : user));
       resetEditedUser();
+      originalUser = {}; 
       $store.setAlert('Usuário editado com sucesso', 'success');
     }
   } catch (error) {
@@ -274,6 +284,7 @@ const openModalToEditUser = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     editedUserId.value = row.itemKey.id;
     editedUser.value = { ...row.itemKey };
+    originalUser = { ...row.itemKey };
   } else {
     console.error('Objeto ou ID indefinido:', row);
   }

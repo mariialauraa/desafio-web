@@ -242,7 +242,7 @@ const confirmDeletion = async () => {
       loadToDelete.value = null; 
       $store.setAlert('Carga deletada com sucesso', 'success');
     } catch (error) {
-      $store.setAlert('Erro ao excluir carga', 'error');
+      $store.setAlert('Erro: existem Listas associadas a esta Carga.', 'error');
     }
   }
 };
@@ -296,7 +296,8 @@ const openModalToEditLoad = (row) => {
 const viewOrders = (row) => {
   if (row && row.itemKey && row.itemKey.id) {
     const loadId = row.itemKey.id;
-    router.push({ name: 'orders', query: { load_id: loadId } });
+    const loadCode = row.itemKey.code;
+    router.push({ name: 'orders', query: { load_id: loadId, load_code: loadCode } });
   } else {
     console.error('ID de carga não encontrado:', row);
   }
